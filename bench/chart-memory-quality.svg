@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 330" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect width="680" height="330" fill="#FCFBF8"/>
+  <text x="24" y="34" font-size="17" font-weight="700" fill="#303C36">记忆通道质量（500 楼模拟真实聊天语料实测）</text>
+
+  <!-- group 1: 关键实体覆盖率 -->
+  <text x="24" y="66" font-size="13" font-weight="600" fill="#303C36">关键实体覆盖率（记忆 ∪ 摘要通道）</text>
+  <rect x="24" y="74" width="500" height="6" rx="3" fill="#EDEAE2"/>
+  <rect x="24" y="74" width="366" height="6" rx="3" fill="#6F785A"/>
+  <text x="398" y="82" font-size="12.5" font-weight="700" fill="#6F785A">73.2%</text>
+
+  <!-- group 2: 定向召回 vs 随机基线 -->
+  <text x="24" y="116" font-size="13" font-weight="600" fill="#303C36">定向召回命中（含实体的真实提问）</text>
+  <rect x="24" y="124" width="500" height="6" rx="3" fill="#EDEAE2"/>
+  <rect x="24" y="124" width="121" height="6" rx="3" fill="#C08A2E"/>
+  <text x="153" y="132" font-size="12.5" font-weight="700" fill="#C08A2E">24.1%（随机基线 8.6%）</text>
+
+  <!-- group 3: 伏笔埋点 -->
+  <text x="24" y="166" font-size="13" font-weight="600" fill="#303C36">章节摘要伏笔埋点存活（3000 楼 8 个埋点）</text>
+  <rect x="24" y="174" width="500" height="6" rx="3" fill="#EDEAE2"/>
+  <rect x="24" y="174" width="500" height="6" rx="3" fill="#6F785A"/>
+  <text x="398" y="190" font-size="12.5" font-weight="700" fill="#6F785A" opacity="0">.</text>
+  <text x="530" y="182" font-size="12.5" font-weight="700" fill="#6F785A">8/8</text>
+
+  <!-- group 4: system 保护 -->
+  <text x="24" y="216" font-size="13" font-weight="600" fill="#303C36">系统块（预设/世界书）保护</text>
+  <rect x="24" y="224" width="500" height="6" rx="3" fill="#EDEAE2"/>
+  <rect x="24" y="224" width="500" height="6" rx="3" fill="#C08A2E"/>
+  <text x="530" y="232" font-size="12.5" font-weight="700" fill="#C08A2E">130/130 · 泄漏 0</text>
+
+  <!-- group 5: 主线程停顿 -->
+  <text x="24" y="266" font-size="13" font-weight="600" fill="#303C36">主线程最大停顿（2000 楼全链路）</text>
+  <rect x="24" y="274" width="500" height="6" rx="3" fill="#EDEAE2"/>
+  <rect x="24" y="274" width="16" height="6" rx="3" fill="#6F785A"/>
+  <text x="48" y="282" font-size="12.5" font-weight="700" fill="#6F785A">247 ms（修复前 4,441 ms）</text>
+
+  <text x="24" y="314" font-size="11.5" fill="#716B60">全部数据来自插件内置基准与离线回放，可在仓库 bench/ 目录复现；定向召回正例为含跨章实体的历史提问。</text>
+</svg>
