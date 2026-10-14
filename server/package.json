@@ -1,0 +1,16 @@
+{
+  "name": "dacongming-memory-service",
+  "version": "0.1.0",
+  "private": true,
+  "description": "大聪明：SillyTavern 记忆管理与上下文压缩的本地 Node.js 记忆服务（零第三方依赖）",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "bench": "node test/bench.js"
+  }
+}
