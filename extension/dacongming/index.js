@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.2.8';
+const EXT_VERSION = '0.2.9';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -709,6 +709,23 @@ function wireEvents() {
     on('MESSAGE_EDITED', 'message_edited', () => scheduleIngest({ full: false }));
     on('MESSAGE_SWIPED', 'message_swiped', () => scheduleIngest({ full: false }));
     on('MESSAGE_DELETED', 'message_deleted', () => scheduleIngest({ full: true }));
+
+    // 聊天被删除 → 自动清理该聊天的记忆副本（事实/摘要/计划/快照/事件）。
+    // ST 的 CHAT_DELETED 回调参数是被删聊天的文件名；存储的 chatId 可能带/不带 .jsonl
+    // 后缀（取决于建库时的元数据），两种形式各清理一次，未命中的形式清理 0 条、无副作用。
+    on('CHAT_DELETED', 'chat_deleted', async (chatFile) => {
+        if (!state.connected || typeof chatFile !== 'string' || !chatFile) return;
+        const base = chatFile.replace(/\.jsonl$/i, '');
+        const targets = [...new Set([chatFile, base])].filter(Boolean);
+        let cleaned = 0;
+        for (const chatId of targets) {
+            try {
+                const r = await bridge.purge({ chatId, confirm: 'DELETE' });
+                cleaned += (r?.memories ?? 0) + (r?.events ?? 0);
+            } catch { /* 该形式无匹配数据时忽略 */ }
+        }
+        if (cleaned > 0) toast(`已同步清理已删除聊天的记忆（${cleaned} 条记录）`, 'info');
+    });
     on('GENERATION_ENDED', 'generation_ended', async () => {
         if (state.lastPlan && state.connected) {
             bridge.feedback(state.lastPlan.planId, { accepted: true }).catch(() => {});

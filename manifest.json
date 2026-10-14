@@ -7,7 +7,7 @@
     "js": "extension/dacongming/index.js",
     "css": "extension/dacongming/style.css",
     "author": "大聪明项目组",
-    "version": "0.2.8",
+    "version": "0.2.9",
     "homePage": "https://github.com/tiewangba2020/SillyTavern-DaCongMing",
     "auto_update": false
 }
