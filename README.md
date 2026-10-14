@@ -4,7 +4,7 @@
   <img src="bench/chart-growth.svg" alt="上下文规模随聊天增长：关闭插件线性爆炸 vs 开启插件被压平在窗口上限内" width="680">
 </p>
 
-> 🔬 **[完整对比实验论文（bench/COMPARISON.md）](bench/COMPARISON.md)** —— 三态对照（关闭插件 / 规则决策 / 决策模型）、机制章节、配对设计与 9 篇参考文献。一句话结论：**2000 楼 2,000 万 token 的聊天被压到 11.5 万（0.57%）仍可对话，关键事实保留 62~73%，系统块 130/130 零丢失，全部数据可复现。**
+> 🔬 **[完整对比实验结果（bench/COMPARISON.md）](bench/COMPARISON.md)** —— 三态对照（关闭插件 / 规则决策 / 决策模型）、机制章节、配对设计与 9 篇参考文献。一句话结论：**2000 楼 2,000 万 token 的聊天被压到 11.5 万（0.57%）仍可对话，关键事实保留 62~73%，系统块 130/130 零丢失，全部数据可复现。**
 
 | 三态对照 | 结果 |
 |---|---|
@@ -24,7 +24,7 @@
 ├─ package.json                 根清单：把仓库 clone 到 plugins/ 即成为可用的服务端插件
 ├─ extension/dacongming/        SillyTavern 浏览器扩展（index / ui / bridge / style）
 ├─ server/                      记忆服务内核（零第三方依赖，附 node --test 测试套件）
-├─ bench/                       对比实验：论文（COMPARISON.md）+ 图表
+├─ bench/                       对比实验结果（COMPARISON.md）+ 图表
 ├─ st-plugin/dacongming/        SillyTavern 服务端插件：内嵌形态（随 ST 运行，无窗口无端口无配对）
 ├─ st-bridge/dacongming-memory/ 服务端桥接插件（独立服务 + 手机 / 局域网同源访问）
 └─ launcher/                    安装 / 启动 / 停止 / 卸载脚本
@@ -46,7 +46,7 @@
 
 ## 实测数据：装上之后到底差多少
 
-口径：**模拟真实聊天语料**（500 / 2000 楼两档，中英混合 RP，含 115k 字符的真实预设+世界书 system），插件侧全部为可复现实测——论文与复现脚本见 [bench/COMPARISON.md](bench/COMPARISON.md)。
+口径：**模拟真实聊天语料**（500 / 2000 楼两档，中英混合 RP，含 115k 字符的真实预设+世界书 system），插件侧全部为可复现实测——结果与复现脚本见 [bench/COMPARISON.md](bench/COMPARISON.md)。
 
 ### 硬指标一览
 
@@ -70,7 +70,7 @@
 
 ![置信度阈值扫描（推荐 0.4）](bench/chart-threshold.svg)
 
-> 论文含 9 篇参考文献（LLMLingua / MemGPT / MemoryBank / Generative Agents / Lost in the Middle / RAG / BM25 等大厂与高引工作），并把本插件机制放进该脉络定位：**提取式压缩路线、零生成记忆、操作系统式分层预算**。
+> 技术参考：含 9 篇文献（LLMLingua / MemGPT / MemoryBank / Generative Agents / Lost in the Middle / RAG / BM25 等大厂与高引工作），并把本插件机制放进该脉络定位：**提取式压缩路线、零生成记忆、操作系统式分层预算**。
 
 ## 安装
 
