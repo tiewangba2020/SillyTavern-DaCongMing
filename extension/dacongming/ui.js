@@ -442,9 +442,9 @@ export function memoryCard(record, handlers) {
     };
     actions.append(
         btn(record.userLocked ? '取消固定' : '固定', () => handlers.onLock(record, !record.userLocked)),
-        btn('纠正', () => handlers.onCorrect(record)),
+        btn('纠正', () => handlers.onCorrect(record, card)),
         btn('不再记忆', () => handlers.onForget(record), 'dcm-danger'),
-        btn('来源', () => handlers.onSources(record)),
+        btn('来源', () => handlers.onSources(record, card)),
         btn('恢复', () => handlers.onRestore(record)),
     );
     card.append(head, content, meta, actions);

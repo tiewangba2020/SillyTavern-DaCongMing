@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.2.5';
+const EXT_VERSION = '0.2.6';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -861,26 +861,41 @@ async function renderMemoryList(pane) {
     speakerInput.addEventListener('input', debounce(reload, 400));
     filterRow.append(search, scopeSel, kindSel, statusSel, timeSel, floorFrom, floorTo, speakerInput);
     const addBtn = el('button', { class: 'menu_button', text: '手动添加记忆' });
-    addBtn.addEventListener('click', () => openAddDialog(reload));
+    addBtn.addEventListener('click', () => openAddDialog(reload, filterRow));
     filterRow.append(addBtn);
     pane.append(filterRow, el('div', { class: 'dcm-memory-list' }));
     await reload();
 }
 
-/** 手动新增一条长期记忆（记忆列表空状态与筛选行的按钮共用）。 */
-async function openAddDialog(reload) {
-    const content = prompt('输入要长期记住的内容（将以最高优先级保存并固定）：');
-    if (!content) return;
-    const ctx = getContext();
-    const chatId = resolveChatId(ctx);
-    const scope = scopeFor(chatId, resolveBranchId(ctx));
-    try {
-        await bridge.createMemory({ scope, chatId, content, kind: 'anchor' });
-        toast('已保存', 'success');
-        reload?.();
-    } catch (err) {
-        toast(`保存失败：${err.message}`, 'error');
-    }
+/** 手动新增一条长期记忆（行内表单，替代原生 prompt）。 */
+async function openAddDialog(reload, anchorEl) {
+    if (!anchorEl || anchorEl.querySelector('.dcm-inline-editor')) return;
+    const editor = el('div', { class: 'dcm-inline-editor' }, [
+        el('div', { class: 'dcm-entry-sub', text: '输入要长期记住的内容（将以最高优先级保存并固定）：' }),
+        el('textarea', { class: 'text_pole', rows: '3' }),
+        el('div', { class: 'dcm-btn-row' }, [
+            el('button', { class: 'menu_button', text: '保存' }),
+            el('button', { class: 'menu_button', text: '取消' }),
+        ]),
+    ]);
+    const [saveBtn, cancelBtn] = editor.querySelectorAll('button');
+    const ta = editor.querySelector('textarea');
+    anchorEl.after(editor);
+    cancelBtn.addEventListener('click', () => editor.remove());
+    saveBtn.addEventListener('click', async () => {
+        const content = ta.value.trim();
+        if (!content) { editor.remove(); return; }
+        const ctx = getContext();
+        const chatId = resolveChatId(ctx);
+        const scope = scopeFor(chatId, resolveBranchId(ctx));
+        try {
+            await bridge.createMemory({ scope, chatId, content, kind: 'anchor' });
+            toast('已保存', 'success');
+            editor.remove();
+            reload?.();
+        } catch (err) { toast(`保存失败：${err.message}`, 'error'); }
+    });
+    ta.focus();
 }
 
 function memoryHandlers(reload) {
@@ -888,17 +903,46 @@ function memoryHandlers(reload) {
         onLock: async (record, locked) => {
             try { await bridge.memoryAction(record.id, { action: 'lock', locked }); reload(); } catch (err) { toast(err.message, 'error'); }
         },
-        onCorrect: async (record) => {
-            const content = prompt('纠正为正确内容（旧版本将立即失效）：', record.content);
-            if (!content || content === record.content) return;
-            try { await bridge.memoryAction(record.id, { action: 'correct', content }); toast('已纠正，旧版本已失效', 'success'); reload(); } catch (err) { toast(err.message, 'error'); }
+        onCorrect: async (record, card) => {
+            // 行内编辑器（替代原生 prompt）：展开在卡片操作按钮上方
+            if (card.querySelector('.dcm-inline-editor')) return;
+            const editor = el('div', { class: 'dcm-inline-editor' }, [
+                el('div', { class: 'dcm-entry-sub', text: '纠正为正确内容（保存后旧版本立即失效）：' }),
+                el('textarea', { class: 'text_pole', rows: '4' }, [record.content]),
+                el('div', { class: 'dcm-btn-row' }, [
+                    el('button', { class: 'menu_button', text: '保存纠正' }),
+                    el('button', { class: 'menu_button', text: '取消' }),
+                ]),
+            ]);
+            const [saveBtn, cancelBtn] = editor.querySelectorAll('button');
+            const ta = editor.querySelector('textarea');
+            card.querySelector('.dcm-memory-actions').before(editor);
+            cancelBtn.addEventListener('click', () => editor.remove());
+            saveBtn.addEventListener('click', async () => {
+                const content = ta.value.trim();
+                if (!content || content === record.content) { editor.remove(); return; }
+                try {
+                    await bridge.memoryAction(record.id, { action: 'correct', content });
+                    toast('已纠正，旧版本已失效', 'success');
+                    editor.remove();
+                    reload();
+                } catch (err) { toast(err.message, 'error'); }
+            });
+            ta.focus();
         },
         onForget: async (record) => {
             if (!confirm('“不再记忆”会建立持久阻断标记，重扫历史也不会复活。继续？')) return;
             try { await bridge.forgetMemory(record.id); toast('已遗忘并建立阻断标记', 'success'); reload(); } catch (err) { toast(err.message, 'error'); }
         },
-        onSources: (record) => {
-            alert(`来源消息 ${record.sourceMessageIds?.length ?? 0} 条：\n${(record.sourceMessageIds ?? []).slice(0, 10).join('\n')}\n\n生成方式：${record.derivation?.method} / ${record.derivation?.version}\n创建时间：${record.createdAt}`);
+        onSources: (record, card) => {
+            // 行内展开来源信息（替代原生 alert）
+            if (card.querySelector('.dcm-sources-box')) { card.querySelector('.dcm-sources-box').remove(); return; }
+            const ids = record.sourceMessageIds ?? [];
+            const box = el('details', { class: 'dcm-sources-box' }, [
+                el('summary', { text: `来源消息 ${ids.length} 条 · 生成方式 ${record.derivation?.method ?? '-'}（v${record.derivation?.version ?? '-'}） · 创建于 ${record.createdAt}` }),
+                el('div', { class: 'dcm-raw' }, [el('pre', { class: 'dcm-json', text: ids.slice(0, 20).join('\n') || '（无来源消息）' })]),
+            ]);
+            card.querySelector('.dcm-memory-actions').before(box);
         },
         onRestore: async (record) => {
             try { await bridge.restoreMemory(record.id); toast('已恢复', 'success'); reload(); } catch (err) { toast(err.message, 'error'); }
@@ -1367,7 +1411,7 @@ async function renderDiagnostics(pane) {
         ]));
         const plugins = eff.installedPlugins ?? probe?.compat?.detected ?? [];
         pane.append(el('div', { class: 'dcm-field-hint', text: plugins.length
-            ? `检测到兼容插件：${plugins.join('、')} —— 可在「迁移导入」里导入它们的记忆。`
+            ? `检测到兼容插件：${plugins.map((p) => (typeof p === 'string' ? p : p.name ?? p.id ?? JSON.stringify(p))).join('、')} —— 可在「迁移导入」里导入它们的记忆。`
             : '未检测到可迁移的兼容插件。' }));
     }
 
