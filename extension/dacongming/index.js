@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.2.6';
+const EXT_VERSION = '0.2.7';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -1495,6 +1495,20 @@ function syncUiFromSettings() {
 }
 
 /**
+ * 样式缓存击穿：给本扩展的 style.css 链接追加版本参数。
+ * 静态 CSS 无版本参数时浏览器会长期缓存，升级后用户看到的是旧样式（表现为修复「没生效」）。
+ */
+function refreshStylesheetVersion() {
+    for (const link of document.querySelectorAll('link[rel="stylesheet"]')) {
+        const href = link.getAttribute('href') ?? '';
+        if (!href.includes('dacongming') || !href.includes('style.css')) continue;
+        const base = href.split('?')[0];
+        const next = `${base}?v=${EXT_VERSION}`;
+        if (!link.href.endsWith(next) && !link.href.includes(`v=${EXT_VERSION}`)) link.href = next;
+    }
+}
+
+/**
  * 在酒馆的 Wand 菜单（输入框左上角魔法棒）里加一个「记忆中心」入口，
  * 与其他全局工具并列，任何界面状态下都能一键打开。
  */
@@ -1633,5 +1647,6 @@ jQuery(async () => {
     }, 30_000);
 
     installWandEntry();
+    refreshStylesheetVersion();
     console.log(`[大聪明] v${EXT_VERSION} 已加载（${HEURISTIC_NOTE}）`);
 });
