@@ -53,3 +53,34 @@ test('系统消息不作为记忆来源', () => {
     });
     assert.equal(out.length, 0);
 });
+
+test('模板文本过滤：状态栏/世界书注入/推理标签不再被抽成记忆（v0.2.8）', () => {
+    const mk = (content, isUser = false) => ({
+        content, isUser, role: isUser ? 'user' : 'assistant',
+        name: isUser ? '你' : '角色', floorIndex: 1, sendDate: null,
+    });
+    const res = extractCandidates({
+        messages: [
+            // 状态栏：整句【】包裹 → 过滤
+            mk('【24小时内未进行标准回路疏导，重塑代偿速率将提升150%】'),
+            // 模板头 ::: 开头 → 过滤
+            mk(':::newspaper 2024-04-08|周一|13:42 / 小鱼干 # 第十章 骨障的刻度'),
+            // 整行方括号标签 → 过滤
+            mk('[Start a new chat]'),
+            // 整条 <think> 无正文 → 过滤
+            mk('<think>用户似乎想测试推理剥离。</think>'),
+            // think + 正文混合 → 剥离 think，正文照常抽取
+            mk('<think>她提到了玉佩。</think>隔壁401宣传来一声极其细微的关门声，苏清对林月的態度變成了戒备与疏离。'),
+            // 尖括号标签头 + 大量模板行 → 过滤
+            mk('<疏珩修正>\n不强调疏珩的设定\n不把世界书中的设定复述到剧情中'),
+            // 普通剧情句 → 正常抽取
+            mk('苏清把半枚玉佩收进了妆匣底层。'),
+        ],
+    });
+    const contents = res.map((c) => c.content);
+    assert.equal(contents.some((c) => c.includes('150%')), false, '状态栏不应被抽取');
+    assert.equal(contents.some((c) => c.includes('newspaper')), false, '::: 模板不应被抽取');
+    assert.equal(contents.some((c) => c.includes('Start a new chat')), false, '开场标签不应被抽取');
+    assert.equal(contents.some((c) => c.includes('推理剥离')), false, 'think 内容不应被抽取');
+    assert.equal(contents.some((c) => c.includes('戒备与疏离')), true, 'think 剥离后正文应照常抽取（state-change 规则命中）');
+    });

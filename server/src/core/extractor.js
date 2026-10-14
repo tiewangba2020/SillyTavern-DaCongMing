@@ -111,10 +111,41 @@ export function extractCandidates(input) {
     const out = [];
     const seen = new Set();
 
+    // 模板文本检测：状态栏 / 世界书注入 / 开场标签等「结构化模板」不是剧情事实。
+    // 只认结构性标记（包裹符号、模板前缀、HTML 标签密度），不做语义判断——
+    // 句子级「同句式换词」的模板识别已被证明不可行（见 D33 实测）。
+    const TEMPLATE_PATTERNS = [
+        /^\s*:::/,                       // :::newspaper 等模板头
+        /^\s*\[[^\]\n]{2,40}\]\s*$/,     // 整行方括号标签（[Start a new chat] 等）
+        /^\s*</,                         // <div>/<疏珩修正> 等尖括号开头
+        /<(div|span|table|details|summary|br|p)\b/i, // HTML 标签密度
+    ];
+    const isTemplateSentence = (s) => {
+        const t = s.trim();
+        if (!t) return false;
+        // 整句被【】包裹（状态栏/系统提示的典型形态）
+        if (t.startsWith('【') && t.endsWith('】')) return true;
+        return TEMPLATE_PATTERNS.some((re) => re.test(t));
+    };
+    const isTemplateMessage = (t) => {
+        const lines = t.split('\n').map((x) => x.trim()).filter(Boolean);
+        if (!lines.length) return true;
+        // 超过一半的行是模板结构 → 整条消息（多为注入的模板/状态栏）不作为记忆来源
+        const hit = lines.filter((l) => isTemplateSentence(l) || TEMPLATE_PATTERNS.some((re) => re.test(l))).length;
+        return hit / lines.length >= 0.5;
+    };
+
     for (const msg of messages) {
-        const text = String(msg.content ?? '');
+        let text = String(msg.content ?? '');
         if (!text.trim()) continue;
         if (msg.isSystem) continue; // 系统消息不作为记忆来源
+
+        // 推理标签剥离：<think>/<thinking>/<thought>/<reasoning> 的内容是模型的思考过程，
+        // 不是剧情事实——剥掉后正文照常抽取（很多 AI 回复是「think + 正文」混合）；
+        // 整条都是 think 的消息剥离后为空，自然被跳过
+        text = text.replace(/<(think|thinking|thought|reasoning)\b[^>]*>[\s\S]*?<\/\1\s*>/gi, '').trim();
+        if (!text.trim()) continue;
+        if (isTemplateMessage(text)) continue; // 状态栏/世界书注入模板不是剧情事实
 
         // 工具结果：结构化结论候选
         if (msg.role === 'tool') {
