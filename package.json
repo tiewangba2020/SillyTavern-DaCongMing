@@ -1,6 +1,6 @@
 {
   "name": "sillytavern-dacongming",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "private": true,
   "description": "大聪明 · SillyTavern 记忆管理与上下文压缩（浏览器扩展 + 内嵌服务端插件 + 独立服务）",
   "type": "module",

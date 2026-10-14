@@ -200,7 +200,7 @@ export function createRoutes(service) {
         },
         {
             method: 'POST', path: '/api/scopes/delete', auth: true,
-            handler: ({ body }) => service.deleteScope(body?.scope),
+            handler: ({ body }) => service.deleteScope(body?.scope, { purgeTombstones: Boolean(body?.purgeTombstones) }),
         },
         {
             method: 'POST', path: '/api/purge', auth: true,

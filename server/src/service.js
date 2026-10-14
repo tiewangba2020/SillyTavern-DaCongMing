@@ -611,17 +611,28 @@ export class Service {
         return { ok: true, scope, name: clean || null };
     }
 
-    /** 删除记忆库（彻底清理该作用域全部副本，等价于 purgeScope；不可逆）。 */
-    deleteScope(scope) {
+    /**
+     * 删除记忆库（彻底清理该作用域全部副本；不可逆）。
+     * 默认保留 tombstone（阻断标记）——防止「不再记忆」的内容在重新摄取历史时复活；
+     * 用户明确不需要阻断时可传 purgeTombstones: true 连标记一起删。
+     */
+    deleteScope(scope, { purgeTombstones = false } = {}) {
         if (typeof scope !== 'string' || !scope) return { ok: false, error: 'scope 不能为空' };
         const result = this.memories.purgeScope(scope);
+        let tombstones = 0;
+        if (purgeTombstones) {
+            const parsed = scope.startsWith('branch:') ? scope.split(':')[1] : scope.replace(/^chat:/, '');
+            tombstones = this.data.removeWhere('tombstones', (t) => t.scope === scope
+                || t.scope === `chat:${parsed}`
+                || String(t.scope ?? '').startsWith(`branch:${parsed}:`));
+        }
         const names = this.data.metaGet('scopeNames', {}) ?? {};
         if (names[scope]) {
             delete names[scope];
             this.data.metaSet('scopeNames', names);
         }
-        this.bus.emit('scope_deleted', { scope, ...result });
-        return { ok: true, scope, ...result };
+        this.bus.emit('scope_deleted', { scope, tombstones, ...result });
+        return { ok: true, scope, tombstones, ...result };
     }
 
     // ---------------- 生命周期 ----------------

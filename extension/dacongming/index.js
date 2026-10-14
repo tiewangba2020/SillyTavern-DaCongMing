@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.3.2';
+const EXT_VERSION = '0.3.3';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -1445,18 +1445,24 @@ async function renderScopeLibrary(pane) {
             const editor = el('div', { class: 'dcm-inline-editor' }, [
                 el('div', { class: 'dcm-entry-sub dcm-danger-text', text:
                     `彻底删除「${s.name ?? s.chatId}」的全部 ${s.records} 条记录？此操作不可逆，不影响酒馆原始聊天。` }),
+                el('label', { class: 'dcm-checkbox-row' }, [
+                    el('input', { type: 'checkbox' }),
+                    el('span', { class: 'dcm-toggle-note', text: '同时删除阻断标记（不推荐：若此聊天还在，被「不再记忆」的内容重新摄取时可能再次成为记忆）' }),
+                ]),
                 el('div', { class: 'dcm-btn-row' }, [
                     el('button', { class: 'menu_button dcm-danger', text: '确认删除' }),
                     el('button', { class: 'menu_button', text: '取消' }),
                 ]),
             ]);
             const [delBtn, cancelBtn] = editor.querySelectorAll('button');
+            const tombCheckbox = editor.querySelector('input[type=checkbox]');
             actions.before(editor);
             cancelBtn.addEventListener('click', () => editor.remove());
             delBtn.addEventListener('click', async () => {
                 try {
-                    const r = await bridge.deleteScope(s.scope);
-                    toast(`已删除（记忆 ${r?.memories ?? 0} / 事件 ${r?.events ?? 0}）`, 'success');
+                    const r = await bridge.deleteScope(s.scope, tombCheckbox.checked);
+                    const extra = r?.tombstones ? ` / 阻断 ${r.tombstones}` : '';
+                    toast(`已删除（记忆 ${r?.memories ?? 0} / 事件 ${r?.events ?? 0}${extra}）`, 'success');
                     await renderScopeLibrary(pane);
                 } catch (err) { toast(err.message, 'error'); }
             });
