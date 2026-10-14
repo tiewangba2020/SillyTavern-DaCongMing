@@ -182,11 +182,17 @@
     align-items: center;
     justify-content: center;
     background: rgba(0, 0, 0, 0.6);
+    /* 手机端兜底：面板高于可视区时 overlay 自身可滚（margin:auto 保持居中） */
+    overflow-y: auto;
+    padding: 8px;
 }
 
 .dcm-center {
-    width: min(920px, 94vw);
-    height: min(82vh, 820px);
+    width: min(920px, 100%);
+    /* 手机浏览器 100vh 含地址栏后区域 → 用 dvh 双声明；max-height 保证关闭按钮永远可见 */
+    max-height: min(88vh, 820px);
+    max-height: min(88dvh, 820px);
+    margin: auto;
     display: flex;
     flex-direction: column;
     overflow: hidden;
