@@ -1,0 +1,13 @@
+{
+    "display_name": "大聪明 · 记忆管理与上下文压缩",
+    "loading_order": 90,
+    "requires": [],
+    "optional": [],
+    "generate_interceptor": "dacongming_generateInterceptor",
+    "js": "index.js",
+    "css": "style.css",
+    "author": "大聪明项目组",
+    "version": "0.2.4",
+    "homePage": "",
+    "auto_update": false
+}

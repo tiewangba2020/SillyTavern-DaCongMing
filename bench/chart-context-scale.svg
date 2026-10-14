@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 300" font-family="system-ui, 'Segoe UI', 'Microsoft YaHei', sans-serif">
+  <rect width="680" height="300" fill="#FCFBF8"/>
+  <text x="24" y="34" font-size="17" font-weight="700" fill="#303C36">2000 楼对话的上下文规模：关闭插件 vs 开启插件</text>
+  <text x="24" y="54" font-size="12" fill="#716B60">模拟真实聊天语料 · 单位：千 token（对数刻度示意，条长按 log10 缩放）</text>
+
+  <!-- bars: log10 scale, max 20,000,000 -> log=7.30 ; width = log/7.3 * 520 -->
+  <!-- off: 20,000,000 log=7.301 -> 520 -->
+  <text x="24" y="95" font-size="13" fill="#303C36" font-weight="600">关闭插件（原始全量）</text>
+  <rect x="24" y="103" width="520" height="26" rx="4" fill="#B4533A"/>
+  <text x="550" y="121" font-size="13" font-weight="700" fill="#B4533A">≈ 19,991 千</text>
+
+  <!-- 1M tier: 651,874 log=5.814 -> 414 -->
+  <text x="24" y="155" font-size="13" fill="#303C36" font-weight="600">开启插件 · 1M 窗口</text>
+  <rect x="24" y="163" width="414" height="26" rx="4" fill="#6F785A"/>
+  <text x="446" y="181" font-size="13" font-weight="700" fill="#6F785A">652 千（3.25%）</text>
+
+  <!-- 131k tier: 114,817 log=5.06 -> 360 -->
+  <text x="24" y="215" font-size="13" fill="#303C36" font-weight="600">开启插件 · 128k 窗口</text>
+  <rect x="24" y="223" width="360" height="26" rx="4" fill="#C08A2E"/>
+  <text x="392" y="241" font-size="13" font-weight="700" fill="#C08A2E">115 千（0.57%）</text>
+
+  <text x="24" y="278" font-size="11.5" fill="#716B60">≤32k 窗口模型：关闭插件完全无法发送；开启插件下 115k 字符的预设+世界书 system 本身超窗，插件阻止发送并给出修复动作。</text>
+</svg>
