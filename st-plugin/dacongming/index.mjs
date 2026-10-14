@@ -31,7 +31,7 @@ export const info = {
     description: '在 SillyTavern 进程内提供记忆管理与上下文压缩（无需独立窗口、端口与配对）。',
 };
 
-export const PLUGIN_VERSION = '0.3.1';
+export const PLUGIN_VERSION = '0.3.2';
 
 /** @type {{ serverRoot: string, dataSubdir: string, storeKind: string, logLevel: string, seedSettings: object } | null} */
 let settings = null;
@@ -128,6 +128,9 @@ function readPluginConfig() {
         dataSubdir: 'dacongming',
         storeKind: 'auto',
         logLevel: 'info',
+        // 网络受限环境的更新镜像（GitHub 加速前缀），如
+        // "https://ghfast.top/https://github.com/tiewangba2020/SillyTavern-DaCongMing"
+        updateMirror: '',
         // 首次为本用户建库时写入的初始设置：
         //   autoManage   —— 打开后台事实抽取（否则记忆库永远是空的）
         //   shadowMode   —— 'first-n' 对应「前 N 轮只记不注入」的既有设计
@@ -226,8 +229,13 @@ function serviceFor(req) {
  * 用户「重启了但没更新」。这里自己负责：fetch → 比较 → `merge --ff-only`（不需要 git 身份）；
  * 能快进则更新完成（提示重启生效）；分叉则只提醒，诊断接口给出手动修复命令。
  * 任何 git 失败都静默降级，不影响服务加载。
+ *
+ * 网络受限环境（直连 GitHub 超时）：在插件 config.json 配 `"updateMirror"` 指向加速镜像
+ * （如 `https://ghfast.top/https://github.com/OWNER/REPO`），fetch 走镜像的 FETCH_HEAD，
+ * 不修改用户 remote。镜像也失败时给出明确提示。
+ * @param {{ pluginDir?: string, updateMirror?: string, log?: Function }} [opts]
  */
-export async function checkPluginUpdate({ pluginDir = __dirname, log = (m) => console.log(`[大聪明] ${m}`) } = {}) {
+export async function checkPluginUpdate({ pluginDir = __dirname, updateMirror = '', log = (m) => console.log(`[大聪明] ${m}`) } = {}) {
     if (!fs.existsSync(path.join(pluginDir, '.git'))) return { available: false, reason: '非 git 安装' };
     const git = (args, opts = {}) => {
         try {
@@ -239,24 +247,29 @@ export async function checkPluginUpdate({ pluginDir = __dirname, log = (m) => co
             throw e;
         }
     };
+    // fetch 目标：镜像 URL 优先（FETCH_HEAD），否则 origin/main
+    const fetchArgs = updateMirror ? [updateMirror, 'main'] : ['origin', 'main'];
+    const remoteRef = updateMirror ? 'FETCH_HEAD' : 'origin/main';
     try {
-        git(['fetch', 'origin', 'main']);
+        git(['fetch', ...fetchArgs]);
         const local = git(['rev-parse', 'HEAD']);
-        const remote = git(['rev-parse', 'origin/main']);
+        const remote = git(['rev-parse', remoteRef]);
         if (local === remote) return { available: false, reason: '已是最新' };
         let updated = false;
         try {
-            git(['merge', '--ff-only', 'origin/main']);
+            git(['merge', '--ff-only', remoteRef]);
             updated = true;
-            log(`检测到新版本，已自动快进更新（${local.slice(0, 7)} → ${remote.slice(0, 7)}）。重启 SillyTavern 后生效。`);
+            const via = updateMirror ? '（镜像）' : '';
+            log(`检测到新版本，已自动快进更新${via}（${local.slice(0, 7)} → ${remote.slice(0, 7)}）。重启 SillyTavern 后生效。`);
         } catch {
             log(`检测到远端有新版本，但本地历史已分叉，无法自动更新。`);
-            log(`手动修复：在 ${pluginDir} 执行 git fetch origin && git reset --hard origin/main，然后重启酒馆。`);
+            log(`手动修复：在 ${pluginDir} 执行 git fetch ${updateMirror || 'origin'} ${updateMirror ? 'main' : 'origin/main:main'} && git reset --hard ${remoteRef}，然后重启酒馆。`);
         }
-        return { available: true, updated, local: local.slice(0, 7), remote: remote.slice(0, 7) };
+        return { available: true, updated, via: updateMirror ? 'mirror' : 'origin', local: local.slice(0, 7), remote: remote.slice(0, 7) };
     } catch (err) {
         if (!err.gitFailed) throw err;
-        return { available: false, reason: `git 不可用：${err.message}` };
+        const hint = updateMirror ? '' : '（网络受限时可在插件 config.json 配置 "updateMirror" 指向 GitHub 加速镜像）';
+        return { available: false, reason: `更新检查失败：${err.message}${hint}` };
     }
 }
 
@@ -282,7 +295,7 @@ export async function init(router) {
 
     // 自更新检查（异步，不阻塞路由挂载）+ 诊断查询路由
     let updateInfo = null;
-    checkPluginUpdate().then((info) => { updateInfo = info; }).catch(() => {});
+    checkPluginUpdate({ updateMirror: settings.updateMirror }).then((info) => { updateInfo = info; }).catch(() => {});
     router.get('/plugin-update-info', (req, res) => {
         res.status(200).json({ ok: true, pluginVersion: PLUGIN_VERSION, update: updateInfo });
     });
