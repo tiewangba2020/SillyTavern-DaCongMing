@@ -215,6 +215,9 @@ export class BridgeClient {
     restoreMemory(id) { return this.request('POST', `/api/memories/${encodeURIComponent(id)}/restore`, {}); }
     forgetText(payload) { return this.request('POST', '/api/forget-text', payload); }
     purge(payload) { return this.request('POST', '/api/purge', payload); }
+    listScopes() { return this.request('GET', '/api/scopes'); }
+    renameScope(scope, name) { return this.request('POST', '/api/scopes/rename', { scope, name }); }
+    deleteScope(scope) { return this.request('POST', '/api/scopes/delete', { scope }); }
 
     // ---------------- 快照 / 体检 / 索引 ----------------
     snapshots(scope) { return this.request('GET', `/api/snapshots?scope=${encodeURIComponent(scope ?? '')}`); }

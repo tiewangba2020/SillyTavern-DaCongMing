@@ -276,3 +276,49 @@ test('抽取会把来源楼层与说话人记到记忆上（D12）', async () =>
         await ctx.cleanup();
     }
 });
+
+test('记忆库管理：listScopes 统计 / renameScope 别名 / deleteScope 彻底清理（v0.3.0）', async () => {
+    const { makeService } = await import('./helpers.js');
+    const ctx = await makeService();
+    try {
+        const { service } = ctx;
+        const chatId = 'multi-run-1';
+        const scope = `chat:${chatId}`;
+        service.ingest({
+            chatId, branchId: 'main', scope,
+            messages: [
+                { content: '苏清对林月的態度变成了戒备与疏离。', isUser: false, name: '角色', floorIndex: 0, sendDate: null },
+                { content: '我把半枚玉佩收进了妆匣底层。', isUser: true, name: '你', floorIndex: 1, sendDate: null },
+            ],
+            fullSync: true,
+        });
+
+        // listScopes：应出现该作用域并统计消息副本
+        const listed = service.listScopes();
+        const entry = listed.scopes.find((x) => x.scope === scope);
+        assert.ok(entry, 'listScopes 应包含刚摄取的聊天');
+        assert.ok(entry.records >= 2, `应统计到至少 2 条记录，实际 ${entry.records}`);
+        assert.ok(entry.bytes > 0);
+
+        // renameScope：别名写入与读取
+        assert.equal(service.renameScope(scope, '第一周目').ok, true);
+        assert.equal(service.listScopes().scopes.find((x) => x.scope === scope).name, '第一周目');
+        // 清除别名（空名）
+        service.renameScope(scope, '');
+        assert.equal(service.listScopes().scopes.find((x) => x.scope === scope).name, null);
+
+        // deleteScope：彻底清理
+        const del = service.deleteScope(scope);
+        assert.equal(del.ok, true);
+        assert.ok(del.memories >= 0);
+        const after = service.listScopes().scopes.find((x) => x.scope === scope);
+        assert.equal(after, undefined, '删除后 listScopes 不应再列出该作用域');
+        assert.equal(service.data.query('memory_records', (r) => r.scope === scope).length, 0, '记忆应被清空');
+
+        // 非法输入
+        assert.equal(service.deleteScope('').ok, false);
+        assert.equal(service.renameScope('', 'x').ok, false);
+    } finally {
+        await ctx.cleanup();
+    }
+});

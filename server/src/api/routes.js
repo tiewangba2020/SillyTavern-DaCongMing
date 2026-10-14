@@ -191,6 +191,18 @@ export function createRoutes(service) {
             }),
         },
         {
+            method: 'GET', path: '/api/scopes', auth: true,
+            handler: () => service.listScopes(),
+        },
+        {
+            method: 'POST', path: '/api/scopes/rename', auth: true,
+            handler: ({ body }) => service.renameScope(body?.scope, body?.name),
+        },
+        {
+            method: 'POST', path: '/api/scopes/delete', auth: true,
+            handler: ({ body }) => service.deleteScope(body?.scope),
+        },
+        {
             method: 'POST', path: '/api/purge', auth: true,
             handler: ({ body }) => {
                 if (body?.confirm !== 'DELETE') {

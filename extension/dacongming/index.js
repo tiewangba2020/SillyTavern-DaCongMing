@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.2.9';
+const EXT_VERSION = '0.3.0';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -767,6 +767,7 @@ async function loadCenterTab(name, center) {
         if (name === '记忆体检') return await renderHealth(pane);
         if (name === '迁移导入') return await renderMigrate(pane);
         if (name === '诊断') return await renderDiagnostics(pane);
+        if (name === '记忆库') return await renderScopeLibrary(pane);
     } catch (err) {
         pane.innerHTML = '';
         pane.append(el('div', { class: 'dcm-entry-sub dcm-danger-text', text: `加载失败：${err.message}` }));
@@ -1374,6 +1375,98 @@ const TASK_STATUS_NAMES = {
     queued: '排队中', running: '执行中', done: '已完成',
     failed: '失败', cancelled: '已取消',
 };
+
+function formatBytes(n) {
+    if (!Number.isFinite(n)) return '-';
+    if (n >= 1024 * 1024) return `${(n / 1024 / 1024).toFixed(2)} MB`;
+    if (n >= 1024) return `${(n / 1024).toFixed(1)} KB`;
+    return `${n} B`;
+}
+
+/** 记忆库：按聊天作用域列出全部记忆库，支持重命名 / 删除 / 查看占用。 */
+async function renderScopeLibrary(pane) {
+    pane.innerHTML = '';
+    pane.append(el('div', { class: 'dcm-entry-sub', text: '加载中……' }));
+    const res = await bridge.listScopes();
+    const scopes = res?.scopes ?? [];
+    const current = resolveChatId(getContext());
+    pane.innerHTML = '';
+
+    pane.append(el('div', { class: 'dcm-entry-sub', text:
+        `共 ${scopes.length} 个记忆库。删除聊天会自动清理对应记忆库；这里可手动重命名或清理多周目残留。` }));
+
+    if (!scopes.length) {
+        pane.append(emptyState('还没有任何记忆库。开启自动管理并聊天后，这里会按聊天列出记忆。'));
+        return;
+    }
+
+    const list = el('div', { class: 'dcm-memory-list' });
+    for (const s of scopes) {
+        const isCurrent = s.chatId === current || s.scope === `chat:${current}`;
+        const card = el('div', { class: 'dcm-memory-card' });
+        const title = el('div', { class: 'dcm-memory-head' }, [
+            el('span', { class: 'dcm-badge', text: isCurrent ? '当前聊天' : (s.orphan ? '残留副本' : '记忆库') }),
+            el('span', { class: 'dcm-memory-content', style: 'font-weight:600; flex:1;', text: s.name ?? s.chatId }),
+        ]);
+        const kindText = Object.entries(s.byKind ?? {}).map(([k, v]) => `${k} ${v}`).join(' · ');
+        card.append(title);
+        card.append(el('div', { class: 'dcm-memory-meta', text:
+            `记录 ${s.records} 条 · 占用 ${formatBytes(s.bytes)}${kindText ? ` · ${kindText}` : ''}${s.lastAt ? ` · 最后活动 ${s.lastAt.slice(0, 19).replace('T', ' ')}` : ''}` }));
+
+        const actions = el('div', { class: 'dcm-memory-actions' });
+        const renameBtn = el('button', { class: 'menu_button dcm-mini', text: s.name ? '重命名' : '命名' });
+        renameBtn.addEventListener('click', () => {
+            if (card.querySelector('.dcm-inline-editor')) return;
+            const editor = el('div', { class: 'dcm-inline-editor' }, [
+                el('div', { class: 'dcm-entry-sub', text: `为「${s.chatId}」起一个好记的名字（留空 = 恢复默认）：` }),
+                el('input', { class: 'text_pole', value: s.name ?? '' }),
+                el('div', { class: 'dcm-btn-row' }, [
+                    el('button', { class: 'menu_button', text: '保存' }),
+                    el('button', { class: 'menu_button', text: '取消' }),
+                ]),
+            ]);
+            const [saveBtn, cancelBtn] = editor.querySelectorAll('button');
+            const input = editor.querySelector('input');
+            actions.before(editor);
+            cancelBtn.addEventListener('click', () => editor.remove());
+            saveBtn.addEventListener('click', async () => {
+                try {
+                    await bridge.renameScope(s.scope, input.value.trim());
+                    toast('已重命名', 'success');
+                    await renderScopeLibrary(pane);
+                } catch (err) { toast(err.message, 'error'); }
+            });
+            input?.focus();
+        });
+        const deleteBtn = el('button', { class: 'menu_button dcm-mini dcm-danger', text: '删除此库' });
+        deleteBtn.addEventListener('click', async () => {
+            if (isCurrent) { toast('不能删除当前正在使用的聊天记忆库', 'warning'); return; }
+            if (card.querySelector('.dcm-inline-editor')) return;
+            const editor = el('div', { class: 'dcm-inline-editor' }, [
+                el('div', { class: 'dcm-entry-sub dcm-danger-text', text:
+                    `彻底删除「${s.name ?? s.chatId}」的全部 ${s.records} 条记录？此操作不可逆，不影响酒馆原始聊天。` }),
+                el('div', { class: 'dcm-btn-row' }, [
+                    el('button', { class: 'menu_button dcm-danger', text: '确认删除' }),
+                    el('button', { class: 'menu_button', text: '取消' }),
+                ]),
+            ]);
+            const [delBtn, cancelBtn] = editor.querySelectorAll('button');
+            actions.before(editor);
+            cancelBtn.addEventListener('click', () => editor.remove());
+            delBtn.addEventListener('click', async () => {
+                try {
+                    const r = await bridge.deleteScope(s.scope);
+                    toast(`已删除（记忆 ${r?.memories ?? 0} / 事件 ${r?.events ?? 0}）`, 'success');
+                    await renderScopeLibrary(pane);
+                } catch (err) { toast(err.message, 'error'); }
+            });
+        });
+        actions.append(renameBtn, deleteBtn);
+        card.append(actions);
+        list.append(card);
+    }
+    pane.append(list);
+}
 
 async function renderDiagnostics(pane) {
     pane.innerHTML = '';

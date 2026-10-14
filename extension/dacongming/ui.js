@@ -269,7 +269,7 @@ export function buildMainPanel(handlers) {
 
 /** 记忆中心的标签页主体（模态与内嵌抽屉共用）。 */
 export function buildMemoryCenterBody(handlers) {
-    const tabs = ['记忆列表', '本轮计划', '快照与恢复', '记忆体检', '迁移导入', '诊断'];
+    const tabs = ['记忆列表', '记忆库', '本轮计划', '快照与恢复', '记忆体检', '迁移导入', '诊断'];
     const tabBar = el('div', { class: 'dcm-tabs' });
     const body = el('div', { class: 'dcm-center-body' });
     const tabNodes = {};

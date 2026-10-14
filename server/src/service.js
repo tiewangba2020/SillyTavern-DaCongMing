@@ -526,6 +526,104 @@ export class Service {
         return { ...stats, preview };
     }
 
+    // ---------------- 记忆库（按聊天作用域）管理 ----------------
+
+    /**
+     * 列出所有记忆库：作用域、别名、记录数与近似占用、最后活动时间。
+     * 占用 = 相关集合中该作用域记录的 JSON 字节数（近似值，非 SQLite 页级精确值）。
+     */
+    listScopes() {
+        const names = this.data.metaGet('scopeNames', {}) ?? {};
+        const stats = new Map(); // scope -> {records, bytes, lastAt, byKind}
+
+        const touch = (scope, rec, kind) => {
+            if (!scope) return;
+            const entry = stats.get(scope) ?? { records: 0, bytes: 0, lastAt: null, byKind: {} };
+            entry.records += 1;
+            entry.bytes += JSON.stringify(rec ?? {}).length;
+            const at = rec?.updatedAt ?? rec?.createdAt ?? rec?.at ?? null;
+            if (at && (!entry.lastAt || at > entry.lastAt)) entry.lastAt = at;
+            if (kind) entry.byKind[kind] = (entry.byKind[kind] ?? 0) + 1;
+            stats.set(scope, entry);
+        };
+
+        for (const r of this.data.all('memory_records')) {
+            touch(r.scope, r, r.kind === 'summary_chapter' ? '摘要' : '记忆');
+        }
+        for (const r of this.data.all('context_plans')) touch(r.scope, r, '计划');
+        for (const r of this.data.all('snapshots')) touch(r.scope, r, '快照');
+        for (const r of this.data.all('tombstones')) touch(r.scope, r, '阻断');
+        // 消息事件按 message_identity 的 chatId 归组
+        const chatEvents = new Map(); // chatId -> {records, bytes, lastAt}
+        for (const r of this.data.all('message_identity')) {
+            if (!r.chatId) continue;
+            const e = chatEvents.get(r.chatId) ?? { records: 0, bytes: 0, lastAt: null };
+            e.records += 1;
+            e.bytes += JSON.stringify(r ?? {}).length;
+            const at = r.lastSeenAt ?? r.createdAt ?? null;
+            if (at && (!e.lastAt || at > e.lastAt)) e.lastAt = at;
+            chatEvents.set(r.chatId, e);
+        }
+
+        const scopes = [];
+        for (const [scope, s] of stats) {
+            const chatId = scope.startsWith('chat:') ? scope.slice(5)
+                : scope.startsWith('branch:') ? scope.split(':')[1] : scope;
+            const ev = chatEvents.get(chatId);
+            if (ev) {
+                s.byKind['消息副本'] = ev.records;
+                s.bytes += ev.bytes;
+                if (ev.lastAt && (!s.lastAt || ev.lastAt > s.lastAt)) s.lastAt = ev.lastAt;
+                chatEvents.delete(chatId);
+            }
+            scopes.push({
+                scope,
+                chatId,
+                name: names[scope] ?? null,
+                records: s.records,
+                bytes: s.bytes,
+                lastAt: s.lastAt,
+                byKind: s.byKind,
+            });
+        }
+        // 只剩消息副本、无记忆数据的孤儿 chatId（例如删除聊天后 purge 过的）也列出，便于清理
+        for (const [chatId, ev] of chatEvents) {
+            const scope = `chat:${chatId}`;
+            scopes.push({
+                scope, chatId, name: names[scope] ?? null,
+                records: ev.records, bytes: ev.bytes, lastAt: ev.lastAt,
+                byKind: { '消息副本': ev.records }, orphan: true,
+            });
+        }
+        scopes.sort((a, b) => String(b.lastAt ?? '').localeCompare(String(a.lastAt ?? '')));
+        return { ok: true, scopes };
+    }
+
+    /** 重命名记忆库（存储层 meta 别名；null/空串 = 清除别名恢复默认显示）。 */
+    renameScope(scope, name) {
+        if (typeof scope !== 'string' || !scope) return { ok: false, error: 'scope 不能为空' };
+        const clean = String(name ?? '').trim().slice(0, 60);
+        const names = this.data.metaGet('scopeNames', {}) ?? {};
+        if (clean) names[scope] = clean;
+        else delete names[scope];
+        this.data.metaSet('scopeNames', names);
+        this.bus.emit('scope_renamed', { scope, name: clean || null });
+        return { ok: true, scope, name: clean || null };
+    }
+
+    /** 删除记忆库（彻底清理该作用域全部副本，等价于 purgeScope；不可逆）。 */
+    deleteScope(scope) {
+        if (typeof scope !== 'string' || !scope) return { ok: false, error: 'scope 不能为空' };
+        const result = this.memories.purgeScope(scope);
+        const names = this.data.metaGet('scopeNames', {}) ?? {};
+        if (names[scope]) {
+            delete names[scope];
+            this.data.metaSet('scopeNames', names);
+        }
+        this.bus.emit('scope_deleted', { scope, ...result });
+        return { ok: true, scope, ...result };
+    }
+
     // ---------------- 生命周期 ----------------
 
     async backup(tag = 'manual') {
