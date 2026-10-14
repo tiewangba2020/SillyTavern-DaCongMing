@@ -19,6 +19,7 @@
  */
 
 import fs from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -30,7 +31,7 @@ export const info = {
     description: '在 SillyTavern 进程内提供记忆管理与上下文压缩（无需独立窗口、端口与配对）。',
 };
 
-export const PLUGIN_VERSION = '0.3.0';
+export const PLUGIN_VERSION = '0.3.1';
 
 /** @type {{ serverRoot: string, dataSubdir: string, storeKind: string, logLevel: string, seedSettings: object } | null} */
 let settings = null;
@@ -218,6 +219,47 @@ function serviceFor(req) {
     return pending;
 }
 
+/**
+ * 插件自更新检查：插件目录是 git 仓库时，fetch 远端并尝试快进更新。
+ *
+ * 背景：ST 的 enableServerPluginsAutoUpdate 默认关闭，且 pull 在历史分叉时静默失败——
+ * 用户「重启了但没更新」。这里自己负责：fetch → 比较 → `merge --ff-only`（不需要 git 身份）；
+ * 能快进则更新完成（提示重启生效）；分叉则只提醒，诊断接口给出手动修复命令。
+ * 任何 git 失败都静默降级，不影响服务加载。
+ */
+export async function checkPluginUpdate({ pluginDir = __dirname, log = (m) => console.log(`[大聪明] ${m}`) } = {}) {
+    if (!fs.existsSync(path.join(pluginDir, '.git'))) return { available: false, reason: '非 git 安装' };
+    const git = (args, opts = {}) => {
+        try {
+            return execFileSync('git', args, { cwd: pluginDir, timeout: 45000, encoding: 'utf8', ...opts }).trim();
+        } catch (err) {
+            const firstLine = String(err.message ?? 'git failed').split('\n')[0];
+            const e = new Error(firstLine);
+            e.gitFailed = true;
+            throw e;
+        }
+    };
+    try {
+        git(['fetch', 'origin', 'main']);
+        const local = git(['rev-parse', 'HEAD']);
+        const remote = git(['rev-parse', 'origin/main']);
+        if (local === remote) return { available: false, reason: '已是最新' };
+        let updated = false;
+        try {
+            git(['merge', '--ff-only', 'origin/main']);
+            updated = true;
+            log(`检测到新版本，已自动快进更新（${local.slice(0, 7)} → ${remote.slice(0, 7)}）。重启 SillyTavern 后生效。`);
+        } catch {
+            log(`检测到远端有新版本，但本地历史已分叉，无法自动更新。`);
+            log(`手动修复：在 ${pluginDir} 执行 git fetch origin && git reset --hard origin/main，然后重启酒馆。`);
+        }
+        return { available: true, updated, local: local.slice(0, 7), remote: remote.slice(0, 7) };
+    } catch (err) {
+        if (!err.gitFailed) throw err;
+        return { available: false, reason: `git 不可用：${err.message}` };
+    }
+}
+
 export async function init(router) {
     settings = readPluginConfig();
     core = await loadCore(settings.serverRoot);
@@ -236,6 +278,13 @@ export async function init(router) {
     mounted = core.host.mountRoutesOnRouter(router, {
         resolveService: serviceFor,
         logger,
+    });
+
+    // 自更新检查（异步，不阻塞路由挂载）+ 诊断查询路由
+    let updateInfo = null;
+    checkPluginUpdate().then((info) => { updateInfo = info; }).catch(() => {});
+    router.get('/plugin-update-info', (req, res) => {
+        res.status(200).json({ ok: true, pluginVersion: PLUGIN_VERSION, update: updateInfo });
     });
 
     console.log(`[大聪明] 服务端插件 v${PLUGIN_VERSION} 已加载：挂载 ${mounted.mounted} 条路由于 /api/plugins/${info.id}（内核 v${core.SERVICE_VERSION}）`);

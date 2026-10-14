@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.3.0';
+const EXT_VERSION = '0.3.1';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -1470,6 +1470,17 @@ async function renderScopeLibrary(pane) {
 
 async function renderDiagnostics(pane) {
     pane.innerHTML = '';
+    // 插件自更新状态（服务端插件 git 安装时才有意义）
+    bridge.request('GET', '/api/plugin-update-info').then((r) => {
+        const u = r?.update;
+        if (!u) return;
+        const text = u.available
+            ? (u.updated
+                ? '已自动更新到最新版 —— 重启酒馆后生效'
+                : '远端有新版本，但本地历史已分叉：在 plugins/dacongming 目录执行 git fetch origin && git reset --hard origin/main 后重启酒馆')
+            : '已是最新';
+        pane.append(kvRow('插件更新', text));
+    }).catch(() => {});
     const ctx = getContext();
     const chatId = resolveChatId(ctx);
 

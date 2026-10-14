@@ -73,7 +73,7 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git <酒馆目
 
 - **后端（服务端插件）**：根 `package.json` 的 `main` 指向插件入口，酒馆 `plugin-loader` 直接加载（需 `config.yaml` 里 `enableServerPlugins: true`）；
 - **前端（浏览器扩展）**：插件启动时自动把 `extension/dacongming` 同步到 `<酒馆>/public/scripts/extensions/third-party/dacongming`，刷新页面即可看到扩展面板；
-- **自动更新**：`enableServerPluginsAutoUpdate`（默认开）时酒馆启动 `git pull`，重启后扩展随插件**同步到同一版本**；
+- **自动更新**：插件启动时**自带更新检查**——自动快进到远端最新版并提示「重启生效」；历史分叉时会在诊断页给出手动修复命令。酒馆的 `enableServerPluginsAutoUpdate`（ST 默认关）只是另一条备用通道；
 - **卸载**：删掉 `plugins/dacongming` 与 `public/scripts/extensions/third-party/dacongming` 两个目录即可。
 
 > 同源桥接插件（`st-bridge/dacongming-memory`）**不需要装**：内嵌插件本身就是同源的。桥接只在「记忆服务用独立进程跑 + 浏览器不在服务所在机器」时才有意义——那种情况按方式二安装脚本处理。
