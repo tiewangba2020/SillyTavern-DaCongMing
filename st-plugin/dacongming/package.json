@@ -1,6 +1,6 @@
 {
   "name": "dacongming-st-plugin",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
   "description": "大聪明 · SillyTavern 服务端插件（内嵌模式）。注意：不要添加 main 字段，SillyTavern 的插件加载器会依次尝试 index.js/index.cjs/index.mjs。",
   "type": "module",

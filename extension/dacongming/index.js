@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.2.4';
+const EXT_VERSION = '0.2.5';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -1450,6 +1450,28 @@ function syncUiFromSettings() {
     }
 }
 
+/**
+ * 在酒馆的 Wand 菜单（输入框左上角魔法棒）里加一个「记忆中心」入口，
+ * 与其他全局工具并列，任何界面状态下都能一键打开。
+ */
+function installWandEntry() {
+    const menu = document.getElementById('extensionsMenu');
+    if (!menu || document.getElementById('dcm-wand-entry')) return;
+    const item = el('div', {
+        id: 'dcm-wand-entry',
+        class: 'list-group-item flex-container flexGap5 interactable',
+        title: '大聪明 · 打开记忆中心',
+    }, [
+        el('div', { class: 'fa-solid fa-database extensionsMenuExtensionButton' }),
+        el('span', { text: '大聪明 · 记忆中心' }),
+    ]);
+    item.addEventListener('click', () => {
+        if (!state.center) { toast('记忆中心尚未就绪，请先启用大聪明扩展', 'warning'); return; }
+        openCenter();
+    });
+    menu.prepend(item);
+}
+
 function buildUi() {
     const panel = buildMainPanel({
         onAutoManage: (value) => setAutoManage(value),
@@ -1566,5 +1588,6 @@ jQuery(async () => {
         }
     }, 30_000);
 
+    installWandEntry();
     console.log(`[大聪明] v${EXT_VERSION} 已加载（${HEURISTIC_NOTE}）`);
 });
