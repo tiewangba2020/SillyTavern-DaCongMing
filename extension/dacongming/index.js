@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.3.6';
+const EXT_VERSION = '0.3.7';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -1476,31 +1476,24 @@ async function renderScopeLibrary(pane) {
 
 async function renderDiagnostics(pane) {
     pane.innerHTML = '';
-    // 插件自更新状态（服务端插件 git 安装时才有意义）
-    bridge.request('GET', '/api/plugin-update-info').then((r) => {
-        const u = r?.update;
-        if (!u) return;
-        const text = u.available
-            ? (u.updated
-                ? '已自动更新到最新版 —— 重启酒馆后生效'
-                : '远端有新版本，但本地历史已分叉：在 plugins/dacongming 目录执行 git fetch origin && git reset --hard origin/main 后重启酒馆')
-            : '已是最新';
-        pane.append(kvRow('插件更新', text));
-    }).catch(() => {});
     const ctx = getContext();
     const chatId = resolveChatId(ctx);
 
-    const [status, taskList, probe] = await Promise.all([
+    const [status, taskList, probe, updateInfo] = await Promise.all([
         bridge.status(),
         bridge.tasks(),
         bridge.probeInfo(chatId).catch(() => null),
+        // 插件自更新状态（服务端插件 git 安装时才有意义）。
+        // 放进 Promise.all 而非「发完就 append」：原来那种写法渲染位置取决于网速快慢，
+        // 这一行会在面板顶部和底部之间乱跳。
+        bridge.request('GET', '/api/plugin-update-info').catch(() => null),
     ]);
     const stats = status.stats ?? {};
     const byStatus = stats.memories?.byStatus ?? {};
 
     // 1) 服务概览
     pane.append(sectionTitle('服务'));
-    pane.append(el('div', { class: 'dcm-summary' }, [
+    const serviceRows = [
         kvRow('版本', `v${status.version ?? '?'}（schema ${stats.schemaVersion ?? '?'} / planner ${stats.plannerVersion ?? '?'}）`),
         kvRow('连接方式', CONNECT_MODE_NAMES[state.mode] ?? state.mode ?? '未连接'),
         kvRow('鉴权', status.security?.paired === false ? '未配对（内嵌模式由 SillyTavern 登录态鉴权）' : '已授权'),
@@ -1508,7 +1501,16 @@ async function renderDiagnostics(pane) {
         kvRow('记忆', `${stats.memories?.total ?? 0} 条（可召回 ${(byStatus.observed ?? 0) + (byStatus.confirmed ?? 0) + (byStatus.active ?? 0)}）`),
         kvRow('观察期待晋升', `${byStatus.candidate ?? 0} 条`),
         kvRow('实体 / 快照 / 墓碑', `${stats.entities ?? 0} / ${stats.snapshots ?? 0} / ${stats.tombstones ?? 0}`),
-    ]));
+    ];
+    const update = updateInfo?.update;
+    if (update) {
+        serviceRows.push(kvRow('插件更新', update.available
+            ? (update.updated
+                ? '已自动更新到最新版 —— 重启酒馆后生效'
+                : '远端有新版本，但本地历史已分叉：在 plugins/dacongming 目录执行 git fetch origin && git reset --hard origin/main 后重启酒馆')
+            : '已是最新'));
+    }
+    pane.append(el('div', { class: 'dcm-summary' }, serviceRows));
 
     // 2) 压缩账本
     const plans = stats.plans ?? {};

@@ -221,7 +221,20 @@
 .dcm-center-sub { font-size: 0.82em; opacity: 0.7; }
 .dcm-close { flex: none; }
 
-.dcm-tabs { display: flex; gap: 4px; padding: 8px 12px 0; overflow-x: auto; flex-wrap: nowrap; }
+/* 标签栏：flex: 0 0 auto 是必需的——它在纵向 flex 里本来会被压缩（实测 41px → 26px），
+   而 overflow-x: auto 按 CSS 规范会把 overflow-y 也算成 auto，于是被压掉的部分直接把
+   标签文字裁成半截。标签栏高度应当由内容决定，永不参与收缩。 */
+.dcm-tabs {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: stretch;
+    gap: 4px;
+    padding: 8px 12px 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+}
 .dcm-tab {
     flex: 0 0 auto;
     padding: 6px 12px;
@@ -229,6 +242,7 @@
     cursor: pointer;
     opacity: 0.7;
     border: 1px solid transparent;
+    white-space: nowrap;
 }
 .dcm-tab.active {
     opacity: 1;
