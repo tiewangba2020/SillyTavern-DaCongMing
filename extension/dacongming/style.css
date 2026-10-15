@@ -177,6 +177,13 @@
 .dcm-overlay {
     position: fixed;
     inset: 0;
+    /* 显式给视口高度：部分主题/美化脚本会给 <html> 加 transform（哪怕只是单位矩阵
+       matrix(1,0,0,1,0,0)），此时 position:fixed 的包含块会从视口退化成 <html> 自身的
+       padding box；而 SillyTavern 的 <body> 是 position:fixed（不在流内），<html> 高度算出来
+       是 0 → inset:0 的弹层会被压成一条只有自身 padding（8+8=16px）高的细缝，看起来就像
+       「记忆中心打不开」。height 与包含块无关，可彻底绕开这个问题。 */
+    height: 100vh;
+    height: 100dvh;
     z-index: 4000;
     display: flex;
     align-items: center;
@@ -320,20 +327,24 @@
 .dcm-toast {
     position: fixed;
     right: 18px;
-    bottom: 18px;
-    max-width: 380px;
+    /* 同 .dcm-overlay：不能用 bottom 定位。包含块退化成高度 0 的 <html> 时，
+       bottom:18px 会把 toast 甩到视口上方（完全看不见）。改成「top 定到视口底部
+       + 自身高度位移」，两种包含块下都对。 */
+    top: 100vh;
+    top: 100dvh;
+    max-width: min(380px, calc(100vw - 36px));
     padding: 10px 14px;
     border-radius: 10px;
     background: #263238;
     color: #fff;
     font-size: 0.9em;
     opacity: 0;
-    transform: translateY(8px);
+    transform: translateY(calc(-100% - 18px + 8px));
     transition: all 0.25s ease;
     z-index: 5000;
     box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
 }
-.dcm-toast.show { opacity: 1; transform: translateY(0); }
+.dcm-toast.show { opacity: 1; transform: translateY(calc(-100% - 18px)); }
 .dcm-toast-success { background: #2e7d32; }
 .dcm-toast-error { background: #b71c1c; }
 .dcm-toast-warn { background: #ef6c00; }

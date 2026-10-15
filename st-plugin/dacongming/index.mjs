@@ -31,7 +31,7 @@ export const info = {
     description: '在 SillyTavern 进程内提供记忆管理与上下文压缩（无需独立窗口、端口与配对）。',
 };
 
-export const PLUGIN_VERSION = '0.3.4';
+export const PLUGIN_VERSION = '0.3.5';
 
 /** @type {{ serverRoot: string, dataSubdir: string, storeKind: string, logLevel: string, seedSettings: object } | null} */
 let settings = null;
