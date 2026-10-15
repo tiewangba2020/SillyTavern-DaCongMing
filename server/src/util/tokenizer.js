@@ -3,7 +3,7 @@
  *
  * 需求约束：无法获得精确 tokenizer 时必须保守估算并明确标记“估算”。
  * 本模块只做规划用估算；发送前的最终校验由扩展使用 SillyTavern 自带
- * tokenizer 完成（见 extension/dacongming/index.js 的 finalCheck）。
+ * tokenizer 完成（见 extension/not-forgotten/index.js 的 finalCheck）。
  *
  * 估算模型（heuristic-cjk-v1）：
  *   - CJK 字符：约 1.5 token/字（覆盖 GPT/Llama/Qwen 系常见中文分词密度）

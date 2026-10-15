@@ -1,11 +1,11 @@
 /**
- * 桥接客户端：与本地大聪明记忆服务通信。
+ * 桥接客户端：与本地AI还没忘记忆服务通信。
  *
  * 三种模式（需求 2.2 / 4.5）：
  *   0. 同源内嵌（首选）：SillyTavern 服务端插件直接提供记忆服务，
- *      `/api/plugins/dacongming/*`，随 ST 启停、无端口、无配对；
+ *      `/api/plugins/not-forgotten/*`，随 ST 启停、无端口、无配对；
  *   1. 同源桥接（手机/LAN 可用）：通过 ST 服务端代理插件
- *      `/api/plugins/dacongming-memory/proxy/*` 转发到独立服务，复用 ST 会话鉴权；
+ *      `/api/plugins/not-forgotten-memory/proxy/*` 转发到独立服务，复用 ST 会话鉴权；
  *   2. 直连 loopback：浏览器直接访问 http://127.0.0.1:PORT，使用配对凭证。
  *
  * 任何请求失败都抛出 BridgeError（带 status / fixActions），
@@ -14,15 +14,15 @@
 
 export const DEFAULT_DIRECT_BASE = 'http://127.0.0.1:8787';
 /** 独立服务代理插件的前缀；业务请求走其 /proxy/* 转发（/health 为专用探测接口）。 */
-export const BRIDGE_PREFIX = '/api/plugins/dacongming-memory';
+export const BRIDGE_PREFIX = '/api/plugins/not-forgotten-memory';
 export const BRIDGE_PROXY_BASE = `${BRIDGE_PREFIX}/proxy`;
 /** 内嵌服务端插件的前缀（路由已由插件挂载，不再带 /api 前缀）。 */
-export const PLUGIN_PREFIX = '/api/plugins/dacongming';
+export const PLUGIN_PREFIX = '/api/plugins/not-forgotten';
 
 /**
  * 构造请求 URL。
  *
- * - plugin：宿主挂在 `/api/plugins/dacongming`，路由不含 `/api` 前缀 → 去掉路径里的 `/api`
+ * - plugin：宿主挂在 `/api/plugins/not-forgotten`，路由不含 `/api` 前缀 → 去掉路径里的 `/api`
  * - bridge：宿主只在 `/proxy/*` 下转发 → 补上 `/proxy`，后面保留原始服务路径
  * - direct：base 即服务地址
  */
@@ -62,7 +62,7 @@ export class BridgeClient {
     }
 
     /**
-     * 探测内嵌服务端插件是否可用（装了大聪明的 ST 服务端插件时为真）。
+     * 探测内嵌服务端插件是否可用（装了AI还没忘的 ST 服务端插件时为真）。
      */
     static async detectPlugin(fetchImpl = globalThis.fetch) {
         try {
@@ -95,8 +95,8 @@ export class BridgeClient {
             throw new BridgeError('尚未连接本地服务', {
                 code: 'NOT_CONNECTED',
                 fixActions: [
-                    '安装大聪明的 SillyTavern 服务端插件（推荐，无需窗口）',
-                    '或运行“启动大聪明.cmd”启动本地服务后点击“连接服务”',
+                    '安装AI还没忘的 SillyTavern 服务端插件（推荐，无需窗口）',
+                    '或运行“启动AI还没忘.cmd”启动本地服务后点击“连接服务”',
                 ],
             });
         }
@@ -132,9 +132,9 @@ export class BridgeClient {
                 {
                     code: 'NETWORK',
                     fixActions: mode === 'plugin'
-                        ? ['确认 SillyTavern 控制台里有 [大聪明] 插件加载日志', '重启 SillyTavern 后重试']
+                        ? ['确认 SillyTavern 控制台里有 [AI还没忘] 插件加载日志', '重启 SillyTavern 后重试']
                         : [
-                            '确认“大聪明”本地服务正在运行（启动器窗口未关闭）',
+                            '确认“AI还没忘”本地服务正在运行（启动器窗口未关闭）',
                             '检查端口是否被防火墙拦截',
                             '在插件面板点击“重新连接”',
                         ],
@@ -267,12 +267,12 @@ function defaultFixActions(status, mode = 'direct') {
             return ['刷新页面（F5）后重试：SillyTavern 重启后旧令牌会失效', '确认 SillyTavern 的 config.yaml 未被改动过 CSRF 相关设置'];
         }
         if (status === 404) {
-            return ['确认 config.yaml 中 enableServerPlugins: true 并重启 SillyTavern', '确认 plugins/dacongming/ 已完整安装'];
+            return ['确认 config.yaml 中 enableServerPlugins: true 并重启 SillyTavern', '确认 plugins/not-forgotten/ 已完整安装'];
         }
         if (status >= 500) {
-            return ['查看 SillyTavern 控制台中的 [大聪明] 日志', '必要时删除该用户目录下的 dacongming/ 数据目录后重试'];
+            return ['查看 SillyTavern 控制台中的 [AI还没忘] 日志', '必要时删除该用户目录下的 not-forgotten/ 数据目录后重试'];
         }
-        return ['在 SillyTavern 控制台查看 [大聪明] 插件日志', '重启 SillyTavern 后重试'];
+        return ['在 SillyTavern 控制台查看 [AI还没忘] 插件日志', '重启 SillyTavern 后重试'];
     }
     if (status === 403) {
         if (mode === 'bridge') {

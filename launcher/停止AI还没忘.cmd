@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableExtensions
-title 大聪明 · 停止本地服务
+title AI还没忘 · 停止本地服务
 
 set "ROOT=%~dp0.."
 for %%I in ("%ROOT%") do set "ROOT=%%~fI"
@@ -23,7 +23,7 @@ if not defined SVC_PID (
     exit /b 0
 )
 
-echo  正在停止大聪明服务（PID %SVC_PID%）……
+echo  正在停止AI还没忘服务（PID %SVC_PID%）……
 taskkill /PID %SVC_PID% /T >nul 2>nul
 timeout /t 2 /nobreak >nul
 tasklist /FI "PID eq %SVC_PID%" 2>nul | find "%SVC_PID%" >nul

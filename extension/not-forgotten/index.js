@@ -1,5 +1,5 @@
 /**
- * 大聪明 · SillyTavern 扩展入口。
+ * AI还没忘 · SillyTavern 扩展入口。
  *
  * 职责：
  *   1. 主面板与记忆中心 UI；
@@ -11,7 +11,7 @@
  */
 
 // 用绝对路径引用 ST 核心：这样无论扩展被放在 third-party/<name>/ 还是
-// third-party/<repo>/extension/dacongming/（酒馆「安装扩展」会克隆整个仓库），
+// third-party/<repo>/extension/not-forgotten/（酒馆「安装扩展」会克隆整个仓库），
 // 解析出的 URL 都是 /scripts/extensions.js，指向同一个模块实例。
 import { extension_settings, getContext } from '/scripts/extensions.js';
 import { BridgeClient, BridgeError, DEFAULT_DIRECT_BASE, BRIDGE_PROXY_BASE, PLUGIN_PREFIX } from './bridge.js';
@@ -20,8 +20,8 @@ import {
     memoryCard, toast, el, emptyState, drawer, sectionTitle, kvRow, rawJson,
 } from './ui.js';
 
-const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.3.7';
+const EXT_NAME = 'not-forgotten';
+const EXT_VERSION = '0.4.0';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -190,7 +190,7 @@ function renderPairInput() {
 }
 
 function showStartHint() {
-    toast('两种用法：① 推荐安装 SillyTavern 服务端插件（plugins/dacongming，随 ST 启停、无需窗口与配对）；② 或运行“启动大聪明.cmd”启动独立服务后在面板配对。', 'info');
+    toast('两种用法：① 推荐安装 SillyTavern 服务端插件（plugins/not-forgotten，随 ST 启停、无需窗口与配对）；② 或运行“启动AI还没忘.cmd”启动独立服务后在面板配对。', 'info');
 }
 
 function setStatus(label, reason, fixActions = []) {
@@ -225,7 +225,7 @@ async function syncSettingsWithServer() {
     try {
         server = await bridge.getSettings();
     } catch (err) {
-        console.warn('[大聪明] 读取服务端设置失败，改为按本地推送', err);
+        console.warn('[AI还没忘] 读取服务端设置失败，改为按本地推送', err);
     }
     const s = server?.settings ?? null;
     if (s?.settingsPersisted && !settings.userTouched) {
@@ -419,7 +419,7 @@ async function reportProbe(force = false) {
         lastProbeAt = Date.now();
         await bridge.probe(collectProbe(ctx));
     } catch (err) {
-        console.warn('[大聪明] 探针上报失败', err);
+        console.warn('[AI还没忘] 探针上报失败', err);
     }
 }
 
@@ -460,7 +460,7 @@ async function ingestNow({ full = false, deleted = null, silent = true } = {}) {
         });
     } catch (err) {
         if (!silent) toast(`记忆同步失败：${err.message}`, 'warn');
-        console.warn('[大聪明] ingest 失败', err);
+        console.warn('[AI还没忘] ingest 失败', err);
         return null;
     }
 }
@@ -480,17 +480,17 @@ function scheduleIngest(opts = {}) {
 function installInterceptor() {
     // ST ≥ 1.19：runGenerationInterceptors 只调用 manifest.generate_interceptor 声明的全局函数
     // （旧版 ST < 1.19 仍直接调用 globalThis.generate_interceptor），两套契约都注册。
-    const KEY = 'dacongming_generateInterceptor';
+    const KEY = 'notforgotten_generateInterceptor';
     if (globalThis.generate_interceptor?.__dcm && globalThis[KEY]?.__dcm) return;
     const previous = globalThis.generate_interceptor;
     const wrapper = async function (chat, contextSize, abort, type) {
         if (typeof previous === 'function') {
-            try { await previous(chat, contextSize, abort, type); } catch (err) { console.warn('[大聪明] 前序拦截器异常', err); }
+            try { await previous(chat, contextSize, abort, type); } catch (err) { console.warn('[AI还没忘] 前序拦截器异常', err); }
         }
         try {
             await onIntercept(chat, contextSize, abort, type);
         } catch (err) {
-            console.error('[大聪明] 拦截器异常（已原样放行）', err);
+            console.error('[AI还没忘] 拦截器异常（已原样放行）', err);
         }
     };
     wrapper.__dcm = true;
@@ -577,7 +577,7 @@ async function onIntercept(chat, contextSize, abort, type) {
             applyPlan(chat, finalPlan);
             measured = await measureChat(chat, blocks, ctx);
         } catch (err) {
-            console.warn('[大聪明] 硬压缩二次规划失败', err);
+            console.warn('[AI还没忘] 硬压缩二次规划失败', err);
         }
     }
 
@@ -622,7 +622,7 @@ function applyPlan(chat, plan) {
     for (const rep of plan.replacements ?? []) {
         const i = rep.floorIndex;
         if (!Number.isInteger(i) || !chat[i] || i === lastUserIndex || chat[i].is_system) continue;
-        chat[i] = { ...chat[i], mes: rep.text, extra: { ...(chat[i].extra ?? {}), dacongmingTruncated: true } };
+        chat[i] = { ...chat[i], mes: rep.text, extra: { ...(chat[i].extra ?? {}), notforgottenTruncated: true } };
     }
 
     // 1) 移除被压缩/丢弃的消息（保护最后一条用户消息与系统消息）
@@ -641,12 +641,12 @@ function applyPlan(chat, plan) {
             if (chat[i]?.is_user) { insertAt = i; break; }
         }
         chat.splice(insertAt, 0, {
-            name: '大聪明',
+            name: 'AI还没忘',
             is_user: false,
             is_system: true,
             send_date: Date.now(),
             mes: injectionText,
-            extra: { dacongming: true, planId: plan.planId },
+            extra: { notforgotten: true, planId: plan.planId },
         });
     }
 }
@@ -690,7 +690,7 @@ function wireEvents() {
     const eventSource = ctx.eventSource;
     const eventTypes = ctx.event_types ?? {};
     if (!eventSource?.on) {
-        console.warn('[大聪明] 无法访问事件系统，仅手动模式可用');
+        console.warn('[AI还没忘] 无法访问事件系统，仅手动模式可用');
         return;
     }
     const on = (name, fallback, handler) => {
@@ -1326,7 +1326,7 @@ async function renderMigrate(pane) {
             const blob = new Blob([JSON.stringify(data.export, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `dacongming-export-${Date.now()}.json`;
+            a.download = `not-forgotten-export-${Date.now()}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
             toast('已导出', 'success');
@@ -1334,7 +1334,7 @@ async function renderMigrate(pane) {
             toast(err.message, 'error');
         }
     });
-    const importBtn = el('button', { class: 'menu_button', text: '导入大聪明导出文件' });
+    const importBtn = el('button', { class: 'menu_button', text: '导入AI还没忘导出文件' });
     const importInput = el('input', { type: 'file', accept: '.json' });
     importBtn.addEventListener('click', () => importInput.click());
     importInput.addEventListener('change', async () => {
@@ -1507,7 +1507,7 @@ async function renderDiagnostics(pane) {
         serviceRows.push(kvRow('插件更新', update.available
             ? (update.updated
                 ? '已自动更新到最新版 —— 重启酒馆后生效'
-                : '远端有新版本，但本地历史已分叉：在 plugins/dacongming 目录执行 git fetch origin && git reset --hard origin/main 后重启酒馆')
+                : '远端有新版本，但本地历史已分叉：在 plugins/not-forgotten 目录执行 git fetch origin && git reset --hard origin/main 后重启酒馆')
             : '已是最新'));
     }
     pane.append(el('div', { class: 'dcm-summary' }, serviceRows));
@@ -1630,7 +1630,7 @@ function syncUiFromSettings() {
 function refreshStylesheetVersion() {
     for (const link of document.querySelectorAll('link[rel="stylesheet"]')) {
         const href = link.getAttribute('href') ?? '';
-        if (!href.includes('dacongming') || !href.includes('style.css')) continue;
+        if (!href.includes('not-forgotten') || !href.includes('style.css')) continue;
         const base = href.split('?')[0];
         const next = `${base}?v=${EXT_VERSION}`;
         if (!link.href.endsWith(next) && !link.href.includes(`v=${EXT_VERSION}`)) link.href = next;
@@ -1647,13 +1647,13 @@ function installWandEntry() {
     const item = el('div', {
         id: 'dcm-wand-entry',
         class: 'list-group-item flex-container flexGap5 interactable',
-        title: '大聪明 · 打开记忆中心',
+        title: 'AI还没忘 · 打开记忆中心',
     }, [
         el('div', { class: 'fa-solid fa-database extensionsMenuExtensionButton' }),
-        el('span', { text: '大聪明 · 记忆中心' }),
+        el('span', { text: 'AI还没忘 · 记忆中心' }),
     ]);
     item.addEventListener('click', () => {
-        if (!state.center) { toast('记忆中心尚未就绪，请先启用大聪明扩展', 'warning'); return; }
+        if (!state.center) { toast('记忆中心尚未就绪，请先启用AI还没忘扩展', 'warning'); return; }
         openCenter();
     });
     menu.prepend(item);
@@ -1746,7 +1746,7 @@ async function pushSettings() {
             allowTelemetry: settings.allowTelemetry,
         });
     } catch (err) {
-        console.warn('[大聪明] 设置同步失败', err);
+        console.warn('[AI还没忘] 设置同步失败', err);
     }
 }
 
@@ -1777,5 +1777,5 @@ jQuery(async () => {
 
     installWandEntry();
     refreshStylesheetVersion();
-    console.log(`[大聪明] v${EXT_VERSION} 已加载（${HEURISTIC_NOTE}）`);
+    console.log(`[AI还没忘] v${EXT_VERSION} 已加载（${HEURISTIC_NOTE}）`);
 });

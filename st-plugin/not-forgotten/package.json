@@ -1,0 +1,10 @@
+{
+  "name": "not-forgotten-st-plugin",
+  "version": "0.4.0",
+  "private": true,
+  "description": "AI还没忘 · SillyTavern 服务端插件（内嵌模式）。注意：不要添加 main 字段，SillyTavern 的插件加载器会依次尝试 index.js/index.cjs/index.mjs。",
+  "type": "module",
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}

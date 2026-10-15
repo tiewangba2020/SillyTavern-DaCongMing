@@ -15,7 +15,7 @@ export function createRoutes(service) {
             method: 'GET', path: '/api/health', auth: false,
             handler: () => ({
                 ok: true,
-                service: 'dacongming-memory-service',
+                service: 'not-forgotten-memory-service',
                 version: service.stats().service,
                 uptimeSec: Math.round((Date.now() - Date.parse(service.startedAt)) / 1000),
                 store: data.adapter.kind,
@@ -43,7 +43,7 @@ export function createRoutes(service) {
             method: 'GET', path: '/api/status', auth: true,
             handler: () => ({
                 ok: true,
-                service: 'dacongming-memory-service',
+                service: 'not-forgotten-memory-service',
                 version: service.stats().service,
                 startedAt: service.startedAt,
                 security: service.security.status(),

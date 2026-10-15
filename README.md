@@ -1,4 +1,6 @@
-# 大聪明 · 记忆管理与上下文压缩
+# AI还没忘 · 记忆管理与上下文压缩
+
+> 旧名「大聪明」。v0.4.0 起更名为 **AI还没忘**，老用户升级前请先看文末的「从旧版升级」。
 
 <p align="center">
   <img src="bench/chart-growth.svg" alt="上下文规模随聊天增长：关闭插件线性爆炸 vs 开启插件被压平在窗口上限内" width="680">
@@ -19,15 +21,15 @@
 ## 目录
 
 ```
-大聪明/
-├─ manifest.json                酒馆「安装扩展」用的清单（js/css 指向 extension/dacongming/）
-├─ package.json                 根清单：把仓库 clone 到 plugins/ 即成为可用的服务端插件
-├─ extension/dacongming/        SillyTavern 浏览器扩展（index / ui / bridge / style）
-├─ server/                      记忆服务内核（零第三方依赖，附 node --test 测试套件）
-├─ bench/                       对比实验结果（COMPARISON.md）+ 图表
-├─ st-plugin/dacongming/        SillyTavern 服务端插件：内嵌形态（随 ST 运行，无窗口无端口无配对）
-├─ st-bridge/dacongming-memory/ 服务端桥接插件（独立服务 + 手机 / 局域网同源访问）
-└─ launcher/                    安装 / 启动 / 停止 / 卸载脚本
+AI还没忘/
+├─ manifest.json                   酒馆「安装扩展」用的清单（js/css 指向 extension/not-forgotten/）
+├─ package.json                    根清单：把仓库 clone 到 plugins/ 即成为可用的服务端插件
+├─ extension/not-forgotten/        SillyTavern 浏览器扩展（index / ui / bridge / style）
+├─ server/                         记忆服务内核（零第三方依赖，附 node --test 测试套件）
+├─ bench/                          对比实验结果（COMPARISON.md）+ 图表
+├─ st-plugin/not-forgotten/        SillyTavern 服务端插件：内嵌形态（随 ST 运行，无窗口无端口无配对）
+├─ st-bridge/not-forgotten-memory/ 服务端桥接插件（独立服务 + 手机 / 局域网同源访问）
+└─ launcher/                       安装 / 启动 / 停止 / 卸载脚本
 ```
 
 ## 它做什么
@@ -77,16 +79,16 @@
 ### 方式一 · 酒馆内置「安装扩展」（最省事，只装浏览器扩展）
 
 1. 酒馆 → **扩展** → **安装扩展**（Install extension）
-2. 粘贴仓库地址：`https://github.com/tiewangba2020/SillyTavern-DaCongMing`
+2. 粘贴仓库地址：`https://github.com/tiewangba2020/sillytavern-not-forgotten`
 3. 点「Install just for me」→ 装完点 **Reload**（或重启酒馆）
 
 > **这一步只装浏览器扩展，不含后端。** 没有后端时面板会显示 **「需要处理 · 未检测到服务」**，插件不会压缩、不会记忆、也不会召回 —— 但**不会影响正常聊天**（未连接时一律原样发送）。  
 > 要让它真正干活，二选一：
 >
-> - **再装内嵌服务端插件**（推荐，无需窗口与端口）：按方式三 `git clone` 到 `<酒馆>/plugins/dacongming`，或运行 `launcher/安装到SillyTavern.cmd`；
-> - **起独立服务**：运行 `launcher/启动大聪明.cmd`，回面板点 **连接服务** 配对（首次输入服务窗口显示的 6 位配对码）。
+> - **再装内嵌服务端插件**（推荐，无需窗口与端口）：按方式三 `git clone` 到 `<酒馆>/plugins/not-forgotten`，或运行 `launcher/安装到SillyTavern.cmd`；
+> - **起独立服务**：运行 `launcher/启动AI还没忘.cmd`，回面板点 **连接服务** 配对（首次输入服务窗口显示的 6 位配对码）。
 >
-> ⚠️ **别让同一份扩展装两遍**（例如既用内置安装器装了 `<仓库名>/`、又用脚本装了 `dacongming/`）——会出现两个面板。只保留一种即可。
+> ⚠️ **别让同一份扩展装两遍**（例如既用内置安装器装了 `<仓库名>/`、又用脚本装了 `not-forgotten/`）——会出现两个面板。只保留一种即可。
 
 ### 方式二 · 脚本安装（扩展 + 内嵌服务端插件，推荐）
 
@@ -95,22 +97,22 @@
    - `是否安装内嵌服务端插件（推荐：不用窗口、不用配对）？[Y/n]` → **直接回车**
    - `是否安装同源桥接插件（手机/局域网访问且使用独立服务）？[y/N]` → **输入 `n`**（本机使用不需要）
 2. **完全关掉 SillyTavern 再重新启动**（服务端插件只在启动时加载）。
-3. 刷新页面 → 扩展面板找到「大聪明」→ 打开 **自动管理**。
+3. 刷新页面 → 扩展面板找到「AI还没忘」→ 打开 **自动管理**。
 
 ### 方式三 · 一条命令装全前后端（推荐，可自动更新）
 
 ```bash
-git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git <酒馆目录>/plugins/dacongming
+git clone https://github.com/tiewangba2020/sillytavern-not-forgotten.git <酒馆目录>/plugins/not-forgotten
 ```
 
 **就这一条命令，前端 + 后端全装好**：
 
 - **后端（服务端插件）**：根 `package.json` 的 `main` 指向插件入口，酒馆 `plugin-loader` 直接加载（需 `config.yaml` 里 `enableServerPlugins: true`）；
-- **前端（浏览器扩展）**：插件启动时自动把 `extension/dacongming` 同步到 `<酒馆>/public/scripts/extensions/third-party/dacongming`，刷新页面即可看到扩展面板；
+- **前端（浏览器扩展）**：插件启动时自动把 `extension/not-forgotten` 同步到 `<酒馆>/public/scripts/extensions/third-party/not-forgotten`，刷新页面即可看到扩展面板；
 - **自动更新**：插件启动时**自带更新检查**——自动快进到远端最新版并提示「重启生效」；历史分叉时会在诊断页给出手动修复命令。酒馆的 `enableServerPluginsAutoUpdate`（ST 默认关）只是另一条备用通道；
-- **卸载**：删掉 `plugins/dacongming` 与 `public/scripts/extensions/third-party/dacongming` 两个目录即可。
+- **卸载**：删掉 `plugins/not-forgotten` 与 `public/scripts/extensions/third-party/not-forgotten` 两个目录即可。
 
-> 同源桥接插件（`st-bridge/dacongming-memory`）**不需要装**：内嵌插件本身就是同源的。桥接只在「记忆服务用独立进程跑 + 浏览器不在服务所在机器」时才有意义——那种情况按方式二安装脚本处理。
+> 同源桥接插件（`st-bridge/not-forgotten-memory`）**不需要装**：内嵌插件本身就是同源的。桥接只在「记忆服务用独立进程跑 + 浏览器不在服务所在机器」时才有意义——那种情况按方式二安装脚本处理。
 
 #### 要不要装「同源桥接插件」？一张表看清
 
@@ -120,19 +122,19 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git <酒馆目
 | 酒馆跑在手机 Termux 上，就用这台手机聊 | 方式三（内嵌） | ❌ 不需要（`127.0.0.1` 就是本机） |
 | 酒馆在云端/服务器，浏览器远程访问 | 方式三（内嵌）+ 反代转发 `/api/plugins/*` | ❌ 不需要 |
 | 电脑跑酒馆，局域网手机/平板访问 | 方式三（内嵌） | ❌ 不需要（同源相对路径自动指向电脑） |
-| 用**独立服务**（`启动大聪明.cmd`，8787 端口）+ 本机浏览器 | 独立服务 + 配对 | ❌ 不需要（本机直连） |
+| 用**独立服务**（`启动AI还没忘.cmd`，8787 端口）+ 本机浏览器 | 独立服务 + 配对 | ❌ 不需要（本机直连） |
 | **独立服务** + 手机/局域网/云端浏览器访问 | 独立服务 + 桥接 | ✅ **只有这种情况才装** |
 
 **口诀：走方式三（内嵌插件）就永远不用装桥接。** 桥接只解决一个问题——「记忆服务是独立进程，而浏览器不在它那台机器上」，此时它充当酒馆与独立服务之间的同源代理。
 
-补充：完全重启 SillyTavern（服务端插件只在启动时加载）→ 刷新页面 → 扩展面板找到「大聪明」→ 打开**自动管理**。
+补充：完全重启 SillyTavern（服务端插件只在启动时加载）→ 刷新页面 → 扩展面板找到「AI还没忘」→ 打开**自动管理**。
 
 ### 独立服务形态（可选）
 
 适合「记忆服务不随 ST 重启」或「多个 ST 共用一个记忆库」。安装脚本第 2 步选 `n`、第 3 步选 `y`（装同源桥接插件），然后：
 
 ```bash
-launcher/启动大聪明.cmd                  # 默认只监听 127.0.0.1:8787
+launcher/启动AI还没忘.cmd                  # 默认只监听 127.0.0.1:8787
 # 或直接跑内核：
 cd server && node src/index.js --port 8790 --data-dir D:/dcm-data --log-level debug --store journal
 ```
@@ -162,18 +164,18 @@ cd server && node src/index.js --port 8790 --data-dir D:/dcm-data --log-level de
 2. **装内嵌服务端插件**（二选一）：
    - 命令行（全平台通用）：
      ```bash
-     git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git <酒馆目录>/plugins/dacongming
+     git clone https://github.com/tiewangba2020/sillytavern-not-forgotten.git <酒馆目录>/plugins/not-forgotten
      ```
    - 或双击 `launcher/安装到SillyTavern.cmd`（Windows，脚本第 2 步选 `Y`）。
 3. 确认 `<酒馆目录>/config.yaml` 里 **`enableServerPlugins: true`**（默认是 `false`，改成 `true`）。
 4. **完全关掉酒馆再重启**（服务端插件只在启动时加载）。
 5. 启动窗口应出现：
    ```
-   [大聪明] 服务端插件 v0.1.0 已加载：挂载 38 条路由于 /api/plugins/dacongming（内核 v0.1.0）
+   [AI还没忘] 服务端插件 v0.4.0 已加载：挂载 38 条路由于 /api/plugins/not-forgotten（内核 v0.4.0）
    ```
 6. 刷新页面 → 扩展面板 → 状态 **● 正常** → 打开 **自动管理**。
 
-**运行环境**：酒馆自身要求 Node ≥ 20，但大聪明的 SQLite 权威存储用的是 Node 内置 `node:sqlite`，需要 **Node ≥ 22.13**。低于这个版本会**自动降级**为 append-only 的 `journal` 存储 —— 功能完全一样，只是大数据量下性能略低。`node -v` 一看便知。
+**运行环境**：酒馆自身要求 Node ≥ 20，但AI还没忘的 SQLite 权威存储用的是 Node 内置 `node:sqlite`，需要 **Node ≥ 22.13**。低于这个版本会**自动降级**为 append-only 的 `journal` 存储 —— 功能完全一样，只是大数据量下性能略低。`node -v` 一看便知。
 
 > macOS / Linux 没有 `.cmd` 脚本，用上面的 `git clone` 即可；扩展在酒馆界面里点「安装扩展」装。
 
@@ -181,7 +183,7 @@ cd server && node src/index.js --port 8790 --data-dir D:/dcm-data --log-level de
 
 #### 场景二 · 手机端 Termux（酒馆直接跑在手机上）
 
-Termux 是 Android 上的 Linux 终端，酒馆可以整个跑在里面，大聪明照常装。
+Termux 是 Android 上的 Linux 终端，酒馆可以整个跑在里面，AI还没忘照常装。
 
 ```bash
 # 1. 装依赖（Termux 里的 nodejs 通常是 22.x / 24.x，够用）
@@ -194,7 +196,7 @@ node -v
 cd ~/SillyTavern
 
 # 4. 装内嵌服务端插件（和电脑端一模一样）
-git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/dacongming
+git clone https://github.com/tiewangba2020/sillytavern-not-forgotten.git plugins/not-forgotten
 
 # 5. 把 config.yaml 里的 enableServerPlugins 改成 true，然后重启酒馆
 ```
@@ -221,7 +223,7 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 3. **反向代理要转发全部路径**，尤其是：
    - `/api/plugins/*`（内嵌插件、SSE 事件流）
    - `/scripts/extensions/third-party/*`（扩展的 js / css 静态资源）
-   只转发 `/` 和 `/api/chat` 是不够的。SSE 长连接（`/api/plugins/dacongming/events`）不要被缓冲，Nginx 加一行：
+   只转发 `/` 和 `/api/chat` 是不够的。SSE 长连接（`/api/plugins/not-forgotten/events`）不要被缓冲，Nginx 加一行：
    ```nginx
    location / {
        proxy_pass http://127.0.0.1:8000;
@@ -233,14 +235,14 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 5. **Docker 部署**：把 `plugins/` 挂成卷（或在容器内 `git clone`），容器重启后生效。
 6. 云端同样是**同源**，所以不需要配对码、不需要对外暴露 8787 端口 —— 8787 应该只监听 `127.0.0.1`。
 
-> ⚠️ 云端最常见的坑：**反代只转发了一部分路径**，扩展探测 `/api/plugins/dacongming/health` 拿到 404 或一段 HTML，面板就永远停在「未检测到服务」。  
-> **排查方法**：在浏览器地址栏直接打开 `https://你的域名/api/plugins/dacongming/health`，正常应返回 `{"ok":true,"service":"dacongming-memory-service",...}`。返回 HTML 就是没转发到酒馆。
+> ⚠️ 云端最常见的坑：**反代只转发了一部分路径**，扩展探测 `/api/plugins/not-forgotten/health` 拿到 404 或一段 HTML，面板就永远停在「未检测到服务」。  
+> **排查方法**：在浏览器地址栏直接打开 `https://你的域名/api/plugins/not-forgotten/health`，正常应返回 `{"ok":true,"service":"not-forgotten-memory-service",...}`。返回 HTML 就是没转发到酒馆。
 
 ---
 
 #### 场景四 · 电脑运行、局域网给手机用（手机浏览器访问电脑上的酒馆）
 
-电脑跑酒馆 + 大聪明，手机在同一 WiFi 下用浏览器打开 `http://<电脑局域网IP>:8000` 聊天。
+电脑跑酒馆 + AI还没忘，手机在同一 WiFi 下用浏览器打开 `http://<电脑局域网IP>:8000` 聊天。
 
 **核心原则：手机上的扩展必须走「同源」链路，绝不能走「直连 127.0.0.1」。**  
 因为手机浏览器里的 `127.0.0.1` 指的是**手机自己**，而不是电脑 —— 直连模式在这里必然失败。
@@ -250,16 +252,16 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 **A. 内嵌服务端插件（推荐）**
 
 - 电脑上按「场景一」装好内嵌服务端插件即可。
-- 手机扩展探测的是相对路径 `/api/plugins/dacongming/health`，会自动指向 `http://<电脑IP>:8000/api/plugins/...` → 天然可达。✅
+- 手机扩展探测的是相对路径 `/api/plugins/not-forgotten/health`，会自动指向 `http://<电脑IP>:8000/api/plugins/...` → 天然可达。✅
 - 手机上**不用**再装一次扩展：扩展存在酒馆服务端，手机打开酒馆就自动加载。
 
 **B. 同源桥接插件（只有你坚持用「独立服务」时才需要）**
 
-- 电脑上跑独立服务：`launcher/启动大聪明.cmd`（监听 `127.0.0.1:8787`，只在本机）。
-- 把 `st-bridge/dacongming-memory/` 整个目录拷到 `<酒馆目录>/plugins/dacongming-memory/`，重启酒馆。
-- 手机扩展探测 `/api/plugins/dacongming-memory/health` → 电脑上的桥接插件替手机转发到电脑本机的 `127.0.0.1:8787`。✅
+- 电脑上跑独立服务：`launcher/启动AI还没忘.cmd`（监听 `127.0.0.1:8787`，只在本机）。
+- 把 `st-bridge/not-forgotten-memory/` 整个目录拷到 `<酒馆目录>/plugins/not-forgotten-memory/`，重启酒馆。
+- 手机扩展探测 `/api/plugins/not-forgotten-memory/health` → 电脑上的桥接插件替手机转发到电脑本机的 `127.0.0.1:8787`。✅
 
-**酒馆侧必须做的局域网设置**（这部分属于酒馆本身，不是大聪明）：
+**酒馆侧必须做的局域网设置**（这部分属于酒馆本身，不是AI还没忘）：
 
 1. **让酒馆监听局域网**：`config.yaml` 里 `listen: true`（或用命令行 `--listen`）。默认 `listen: false` 只监听本机，手机连不上。
 2. **放行局域网**：`whitelistMode: true` 时要把网段加进白名单（支持 CIDR）：
@@ -275,18 +277,18 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 5. **查电脑的局域网 IP**：Windows `ipconfig`、Linux/macOS `ip addr`（或 `ifconfig`）。手机和电脑必须在**同一个 WiFi**。
 6. 手机浏览器打开 `http://<电脑IP>:8000`，装扩展（方式一），刷新后面板应显示 **● 正常**。
 
-> 一句话总结场景四：**后端跟着酒馆走（内嵌插件），手机只管打开酒馆网页。** 只要酒馆能被手机访问，大聪明就跟着能用。
+> 一句话总结场景四：**后端跟着酒馆走（内嵌插件），手机只管打开酒馆网页。** 只要酒馆能被手机访问，AI还没忘就跟着能用。
 
 ## 五分钟上手
 
 1. **安装**（见上，任选一种），需要的话重启 SillyTavern。
-2. **确认连上**：点酒馆的 **扩展** 按钮（积木图标）→ 展开 **大聪明 · 记忆与上下文压缩** → 状态应显示 **● 正常**。
+2. **确认连上**：点酒馆的 **扩展** 按钮（积木图标）→ 展开 **AI还没忘 · 记忆与上下文压缩** → 状态应显示 **● 正常**。
 3. **打开「自动管理」**：点开关或点「自动管理」几个字都行。做完这一步插件就开始工作了 —— 不用写正则、不用选模型、不用调阈值。
 4. **正常聊天**：前 20 轮是「观察期」，只在后台默默记录，**完全不会改动**你发给模型的内容；20 轮之后开始注入相关旧记忆、并在上下文快满时自动压缩。它坏了也只会「原样发送」，不会卡住你的聊天。
 5. **想看它做了什么**（可选）：扩展面板 → **打开记忆中心**。
 
 > 成功的样子：酒馆启动窗口里出现  
-> `[大聪明] 服务端插件 v0.1.0 已加载：挂载 38 条路由于 /api/plugins/dacongming`
+> `[AI还没忘] 服务端插件 v0.4.0 已加载：挂载 38 条路由于 /api/plugins/not-forgotten`
 
 ## 一张速查表：我想……该点哪里？
 
@@ -307,7 +309,7 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 
 ## 主面板
 
-收起时只有一行（状态点也看得见）：**大聪明 · 记忆与上下文压缩　● 正常　⌄**。展开后分三区：
+收起时只有一行（状态点也看得见）：**AI还没忘 · 记忆与上下文压缩　● 正常　⌄**。展开后分三区：
 
 | 区域          | 内容                                                                                                                          |
 | ----------- | --------------------------------------------------------------------------------------------------------------------------- |
@@ -327,7 +329,7 @@ git clone https://github.com/tiewangba2020/SillyTavern-DaCongMing.git plugins/da
 | **本轮计划**  | 结构化展示最近一轮的完整决策：本轮概览（结果、压缩比例、`基线 → 最终`、token 口径、**触发原因**、耗时）、为什么这样做、注入内容、消息处理（保留/压缩/丢弃的楼层与原因）、召回来源。顶部按钮：**仅预览（只读）**、**撤销本次压缩** |
 | **快照与恢复** | **立即创建快照**、**重建索引**、恢复任一历史快照                                                                                                  |
 | **记忆体检**  | 检查 7 类问题并给修复动作：冲突、过期、无来源、孤儿来源、跨作用域污染、重复摘要、损坏索引                                                                                |
-| **迁移导入**  | 从旧插件导入（只读扫描 → 映射预览 → 去重报告 → 试运行 → 提交 → **可回滚**，幂等）；导出/导入大聪明自己的 JSON；**彻底删除插件副本（本聊天）**（不动 SillyTavern 原始聊天）                    |
+| **迁移导入**  | 从旧插件导入（只读扫描 → 映射预览 → 去重报告 → 试运行 → 提交 → **可回滚**，幂等）；导出/导入AI还没忘自己的 JSON；**彻底删除插件副本（本聊天）**（不动 SillyTavern 原始聊天）                    |
 | **诊断**    | 服务状态、压缩账本（累计节省）、**环境与兼容（自动探针）**、任务队列（可取消）、最近诊断事件；底部有默认折叠的原始数据                                                                 |
 
 > **楼层筛选注意**：只有自动抽取与章节摘要产生的记忆带楼层信息；手动新增、从旧插件导入的记录没有楼层，**一旦使用楼层筛选就会被排除**（筛选条会提示）。
@@ -431,7 +433,7 @@ candidate（候选） → observed（已观察） → confirmed（已确认） �
 
 ## 故障排查
 
-**按顺序做这三件事，能解决九成问题**：① 刷新页面（F5）→ ② **完全重启** SillyTavern（不是刷新，是关掉再开）→ ③ 看启动窗口有没有 `[大聪明] 服务端插件 v0.1.0 已加载` 这一行。
+**按顺序做这三件事，能解决九成问题**：① 刷新页面（F5）→ ② **完全重启** SillyTavern（不是刷新，是关掉再开）→ ③ 看启动窗口有没有 `[AI还没忘] 服务端插件 v0.4.0 已加载` 这一行。
 
 | 现象                         | 原因与处理                                                                                                            |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------- |
@@ -445,9 +447,9 @@ candidate（候选） → observed（已观察） → confirmed（已确认） �
 | 按钮/文字显示异常                  | 多为主题 CSS 冲突，截图反馈即可（插件已对常见 flex 压缩做处理）                                                                            |
 | 手机/局域网能打开酒馆，但面板「未检测到服务」    | 多半是后端没走同源：确认装的是**内嵌服务端插件**（不是只起了独立服务），且 `enableServerPlugins: true`。**直连模式在手机上必然失败**（`127.0.0.1` 指手机自己），见「场景四」   |
 | 手机打不开酒馆页面                  | 这是酒馆的问题：`listen` 没开、白名单没放行局域网网段、或防火墙拦了 8000。见「场景四」第 1~5 条                                                        |
-| 云端面板「未检测到服务」，但启动日志有 `已加载`  | 反向代理没转发 `/api/plugins/*`。浏览器直接打开 `https://你的域名/api/plugins/dacongming/health`，返回 HTML 就说明没转发到酒馆，见「场景三」           |
+| 云端面板「未检测到服务」，但启动日志有 `已加载`  | 反向代理没转发 `/api/plugins/*`。浏览器直接打开 `https://你的域名/api/plugins/not-forgotten/health`，返回 HTML 就说明没转发到酒馆，见「场景三」           |
 
-### 已知限制（v0.1.0）
+### 已知限制
 
 1. **楼层筛选**只对自动抽取与章节摘要产生的记忆有效；手动新增、从旧插件导入的记录没有楼层信息，会被楼层筛选排除。
 2. **「立即压缩」暂无入口**：「仅预览」「撤销压缩」「恢复快照」都已提供；「立即压缩」的语义待确定（直接改写你的聊天副本有风险）。请用「仅预览」查看效果，或正常发送一轮让它在发送副本上生效。
@@ -455,20 +457,31 @@ candidate（候选） → observed（已观察） → confirmed（已确认） �
 4. `node:sqlite` 需要 Node ≥ 22.5（22.13 前需 `--experimental-sqlite`），不满足时自动降级为 journal 存储（功能一致、性能略低）。
 5. **四个可选开关中只有 Jev 有实现**，且在面板「高级设置」里配置端点（保存即热生效，无需重启）；其余为预留位置，界面已灰显标注。
 
+## 从旧版「大聪明」升级
+
+v0.4.0 起更名为 **AI还没忘**，内部标识 `dacongming` → `not-forgotten`。改名的是**扩展目录名、插件路由前缀、数据目录名**这三处，所以旧版本装过的用户需要手工清理一次，否则会出现两个面板、或旧记忆读不出来。
+
+1. **删旧扩展目录**：`<酒馆目录>/public/scripts/extensions/third-party/dacongming/`（若用内置安装器装过，还可能是 `third-party/SillyTavern-DaCongMing/`）。
+2. **删旧插件目录**：`<酒馆目录>/plugins/dacongming/` 与 `<酒馆目录>/plugins/dacongming-memory/`。
+3. **保留已有记忆（可选）**：把数据目录 `<用户目录>/dacongming/` 改名为 `<用户目录>/not-forgotten/`，记忆库、设置、备份全部原样延续；不改名则等于全新开始 —— 旧数据仍留在磁盘上，**不会丢**。
+4. 按上面的「安装」重新装一次，**完全重启** SillyTavern，并在扩展面板把 **自动管理** 重新打开一次（面板开关存在酒馆设置里，键名随扩展标识一起变了）。
+
+> 只换了标识，**功能与数据格式没有任何变化**：`not-forgotten` 与 `dacongming` 的数据库结构完全一致，改名即可无缝接管。
+
 ## 卸载与数据位置
 
-- **卸载**：运行 `launcher/卸载大聪明.cmd`。只删除扩展与插件目录，**不动**记忆数据。
-- **数据位置**：内嵌形态在 `<SillyTavern数据目录>/<用户名>/dacongming/`（`memory.sqlite` + `settings.json` + `backups/`）；独立形态在 `server/data/`。
+- **卸载**：运行 `launcher/卸载AI还没忘.cmd`。只删除扩展与插件目录，**不动**记忆数据。
+- **数据位置**：内嵌形态在 `<SillyTavern数据目录>/<用户名>/not-forgotten/`（`memory.sqlite` + `settings.json` + `backups/`）；独立形态在 `server/data/`。
 - **想彻底清空记忆**：先在记忆中心导出备份，再删除上述数据目录（或删除后重启 SillyTavern）。
 
 ### 内嵌插件配置（可选）
 
-`<酒馆目录>/plugins/dacongming/config.json`：
+`<酒馆目录>/plugins/not-forgotten/config.json`：
 
 ```json
 {
   "serverRoot": "./src",
-  "dataSubdir": "dacongming",
+  "dataSubdir": "not-forgotten",
   "storeKind": "auto",
   "logLevel": "info",
   "seedSettings": { "autoManage": true, "shadowMode": "first-n", "shadowTurns": 20 }

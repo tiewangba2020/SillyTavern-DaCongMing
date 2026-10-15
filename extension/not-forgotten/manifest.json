@@ -1,0 +1,13 @@
+{
+    "display_name": "AI还没忘 · 记忆管理与上下文压缩",
+    "loading_order": 90,
+    "requires": [],
+    "optional": [],
+    "generate_interceptor": "notforgotten_generateInterceptor",
+    "js": "index.js",
+    "css": "style.css",
+    "author": "AI还没忘项目组",
+    "version": "0.4.0",
+    "homePage": "",
+    "auto_update": false
+}

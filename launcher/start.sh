@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 大聪明 · 本地记忆服务启动脚本（Linux / macOS）
+# AI还没忘 · 本地记忆服务启动脚本（Linux / macOS）
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
@@ -28,5 +28,5 @@ elif [[ "$STATUS" == "2" ]]; then
 fi
 
 cd "$ROOT/server"
-echo "正在启动大聪明本地服务……（Ctrl+C 停止；停止不会删除任何聊天或记忆数据）"
+echo "正在启动AI还没忘本地服务……（Ctrl+C 停止；停止不会删除任何聊天或记忆数据）"
 exec "$NODE_EXE" src/index.js "$@"

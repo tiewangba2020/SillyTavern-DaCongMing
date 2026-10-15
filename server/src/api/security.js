@@ -78,7 +78,7 @@ export class Security {
         // 控制台醒目显示配对码
         console.log('');
         console.log('==============================================');
-        console.log(`  大聪明配对码： ${this.pairing.code}`);
+        console.log(`  AI还没忘配对码： ${this.pairing.code}`);
         console.log(`  来源：${clientName}  有效期：5 分钟`);
         console.log('  在 SillyTavern 插件面板输入此码完成连接。');
         console.log('==============================================');

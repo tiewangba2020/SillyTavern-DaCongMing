@@ -1,12 +1,12 @@
 {
-  "name": "sillytavern-dacongming",
-  "version": "0.3.7",
+  "name": "sillytavern-not-forgotten",
+  "version": "0.4.0",
   "private": true,
-  "description": "大聪明 · SillyTavern 记忆管理与上下文压缩（浏览器扩展 + 内嵌服务端插件 + 独立服务）",
+  "description": "AI还没忘 · SillyTavern 记忆管理与上下文压缩（浏览器扩展 + 内嵌服务端插件 + 独立服务）",
   "type": "module",
   "license": "MIT",
   "engines": {
     "node": ">=22.5.0"
   },
-  "main": "st-plugin/dacongming/index.mjs"
+  "main": "st-plugin/not-forgotten/index.mjs"
 }

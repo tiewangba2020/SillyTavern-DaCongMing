@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export const SERVER_ROOT = path.resolve(__dirname, '..');
-export const SERVICE_NAME = 'dacongming-memory-service';
-export const SERVICE_VERSION = '0.3.7';
+export const SERVICE_NAME = 'not-forgotten-memory-service';
+export const SERVICE_VERSION = '0.4.0';
 export const SCHEMA_VERSION = 1;
 export const PLANNER_VERSION = 'planner-v1';
 export const EXTRACTOR_VERSION = 'rule-extractor-v1';

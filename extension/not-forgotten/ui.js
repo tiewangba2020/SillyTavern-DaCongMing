@@ -1,5 +1,5 @@
 /**
- * 大聪明 UI：主面板（单个折叠块）+ 记忆中心。
+ * AI还没忘 UI：主面板（单个折叠块）+ 记忆中心。
  * 纯 DOM 构建，不依赖模板文件，兼容不同 SillyTavern 版本。
  *
  * 设计约定：
@@ -104,7 +104,7 @@ export function buildMainPanel(handlers) {
     const headerStatus = el('span', { class: 'dcm-status-inline' }, [statusDot, statusText]);
 
     const main = drawer({
-        title: '大聪明 · 记忆与上下文压缩',
+        title: 'AI还没忘 · 记忆与上下文压缩',
         hintNode: headerStatus,
     });
     const ui = main.content;

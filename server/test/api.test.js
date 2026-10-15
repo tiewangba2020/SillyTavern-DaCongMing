@@ -24,7 +24,7 @@ test('健康检查无需鉴权；受保护接口缺少凭证 → 401 且带修�
         const health = await s.request('GET', '/api/health', { token: null });
         assert.equal(health.status, 200);
         assert.equal(health.payload.ok, true);
-        assert.equal(health.payload.service, 'dacongming-memory-service');
+        assert.equal(health.payload.service, 'not-forgotten-memory-service');
 
         const status = await s.request('GET', '/api/status', { token: null });
         assert.equal(status.status, 401);

@@ -1,11 +1,11 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableExtensions EnableDelayedExpansion
-title 大聪明 · 从 SillyTavern 卸载
+title AI还没忘 · 从 SillyTavern 卸载
 
 echo.
 echo  本脚本只删除「扩展」与「服务端插件」目录，**不会**删除任何记忆数据。
-echo  记忆数据在各 SillyTavern 用户目录下的 dacongming 子目录里，需要清理时请自行备份后删除。
+echo  记忆数据在各 SillyTavern 用户目录下的 not-forgotten 子目录里，需要清理时请自行备份后删除。
 echo.
 
 set "ST_DIR=%~1"
@@ -18,9 +18,9 @@ if not exist "!ST_DIR!\server.js" (
     exit /b 1
 )
 
-set "EXT_TARGET=!ST_DIR!\public\scripts\extensions\third-party\dacongming"
-set "PLUGIN_TARGET=!ST_DIR!\plugins\dacongming"
-set "BRIDGE_TARGET=!ST_DIR!\plugins\dacongming-memory"
+set "EXT_TARGET=!ST_DIR!\public\scripts\extensions\third-party\not-forgotten"
+set "PLUGIN_TARGET=!ST_DIR!\plugins\not-forgotten"
+set "BRIDGE_TARGET=!ST_DIR!\plugins\not-forgotten-memory"
 
 for %%D in ("!EXT_TARGET!" "!PLUGIN_TARGET!" "!BRIDGE_TARGET!") do (
     if exist "%%~fD" (
@@ -38,7 +38,7 @@ for %%D in ("!EXT_TARGET!" "!PLUGIN_TARGET!" "!BRIDGE_TARGET!") do (
 
 echo.
 echo  卸载完成，重启 SillyTavern 生效。
-echo  如需一并清理记忆数据，请删除各 SillyTavern 用户目录下的 dacongming 子目录。
+echo  如需一并清理记忆数据，请删除各 SillyTavern 用户目录下的 not-forgotten 子目录。
 echo.
 pause
 endlocal

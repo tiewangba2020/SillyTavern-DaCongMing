@@ -14,7 +14,7 @@ async function main() {
 
     console.log('');
     console.log('  ╔══════════════════════════════════════════════╗');
-    console.log('  ║   大聪明 · 记忆管理与上下文压缩 · 本地服务    ║');
+    console.log('  ║   AI还没忘 · 记忆管理与上下文压缩 · 本地服务    ║');
     console.log(`  ║   v${SERVICE_VERSION}   数据目录: ${shorten(config.dataDir, 26)}  ║`);
     console.log('  ╚══════════════════════════════════════════════╝');
     console.log('');

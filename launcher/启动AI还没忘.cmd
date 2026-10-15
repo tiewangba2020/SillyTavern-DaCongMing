@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableExtensions
-title 大聪明 · 记忆管理与上下文压缩 · 本地服务
+title AI还没忘 · 记忆管理与上下文压缩 · 本地服务
 
 set "ROOT=%~dp0.."
 for %%I in ("%ROOT%") do set "ROOT=%%~fI"
@@ -45,14 +45,14 @@ if "%NODE_STATUS%"=="2" (
 
 rem 3) 启动服务（数据目录：server\data，默认只监听 127.0.0.1）
 cd /d "%ROOT%\server"
-echo  正在启动大聪明本地服务……（关闭本窗口即停止服务；停止不会删除任何聊天或记忆数据）
+echo  正在启动AI还没忘本地服务……（关闭本窗口即停止服务；停止不会删除任何聊天或记忆数据）
 echo.
 "%NODE_EXE%" src\index.js %*
 set "EXIT_CODE=%errorlevel%"
 if not "%EXIT_CODE%"=="0" (
     echo.
     echo  [需要处理] 服务已退出（代码 %EXIT_CODE%）。常见原因与修复：
-    echo    - 端口被占用：服务会自动尝试后续端口；也可用  启动大聪明.cmd --port 8790
+    echo    - 端口被占用：服务会自动尝试后续端口；也可用  启动AI还没忘.cmd --port 8790
     echo    - 数据库迁移失败：服务会进入修复模式，按窗口提示“重试迁移”或“从备份恢复”
     echo    - 权限不足：请不要把本目录放在需要管理员权限的位置
     echo.

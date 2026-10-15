@@ -25,7 +25,7 @@ import { RECALLABLE_STATUS } from './memory.js';
 
 const CHAPTER_SIZE = 40;
 const PLAN_RETENTION_PER_CHAT = 300;
-const INJECTION_HEADER = '以下内容由“大聪明”从历史对话中压缩整理，仅作背景参考；与最新原文冲突时以最新原文为准。';
+const INJECTION_HEADER = '以下内容由“AI还没忘”从历史对话中压缩整理，仅作背景参考；与最新原文冲突时以最新原文为准。';
 const DEFAULT_FIX_ACTIONS = [
     '减少固定块：检查预设/世界书注入是否过长',
     '降低目标档位到“节省用量”',

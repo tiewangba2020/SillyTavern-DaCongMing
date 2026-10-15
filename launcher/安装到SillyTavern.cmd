@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal EnableExtensions EnableDelayedExpansion
-title 大聪明 · 安装到 SillyTavern
+title AI还没忘 · 安装到 SillyTavern
 
 set "ROOT=%~dp0.."
 for %%I in ("%ROOT%") do set "ROOT=%%~fI"
@@ -25,12 +25,12 @@ if not exist "!ST_DIR!\server.js" (
 )
 
 rem ---- 1) 浏览器扩展（全局 third-party）----
-set "EXT_TARGET=!ST_DIR!\public\scripts\extensions\third-party\dacongming"
+set "EXT_TARGET=!ST_DIR!\public\scripts\extensions\third-party\not-forgotten"
 echo  [1/3] 安装扩展到：!EXT_TARGET!
 if exist "!EXT_TARGET!" (
     echo        已存在旧版本，将覆盖更新（设置保存在 SillyTavern 用户数据中，不受影响）。
 )
-robocopy "%ROOT%\extension\dacongming" "!EXT_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
+robocopy "%ROOT%\extension\not-forgotten" "!EXT_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
 if errorlevel 8 (
     echo  [需要处理] 复制扩展失败，请检查目录权限。
     pause
@@ -42,9 +42,9 @@ rem ---- 2) 内嵌服务端插件（推荐）----
 set "INSTALL_PLUGIN=Y"
 set /p "INSTALL_PLUGIN=是否安装内嵌服务端插件（推荐：不用窗口、不用配对）？[Y/n] "
 if /I not "!INSTALL_PLUGIN!"=="n" (
-    set "PLUGIN_TARGET=!ST_DIR!\plugins\dacongming"
+    set "PLUGIN_TARGET=!ST_DIR!\plugins\not-forgotten"
     echo  [2/3] 安装内嵌插件到：!PLUGIN_TARGET!
-    robocopy "%ROOT%\st-plugin\dacongming" "!PLUGIN_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
+    robocopy "%ROOT%\st-plugin\not-forgotten" "!PLUGIN_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
     if errorlevel 8 (
         echo  [需要处理] 复制插件入口失败。
         pause
@@ -74,9 +74,9 @@ rem ---- 3) 可选：同源桥接插件（手机/局域网 + 独立服务）----
 set "INSTALL_BRIDGE=N"
 set /p "INSTALL_BRIDGE=是否安装同源桥接插件（手机/局域网访问且使用独立服务）？[y/N] "
 if /I "!INSTALL_BRIDGE!"=="y" (
-    set "BRIDGE_TARGET=!ST_DIR!\plugins\dacongming-memory"
+    set "BRIDGE_TARGET=!ST_DIR!\plugins\not-forgotten-memory"
     echo  [3/3] 安装桥接插件到：!BRIDGE_TARGET!
-    robocopy "%ROOT%\st-bridge\dacongming-memory" "!BRIDGE_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
+    robocopy "%ROOT%\st-bridge\not-forgotten-memory" "!BRIDGE_TARGET!" /E /NFL /NDL /NJH /NJS /NC /NS /NP >nul
     if errorlevel 8 (
         echo  [需要处理] 复制桥接插件失败。
         pause
@@ -94,11 +94,11 @@ if /I "!INSTALL_BRIDGE!"=="y" (
 echo.
 echo  安装完成。下一步：
 echo    1. 重启 SillyTavern（服务端插件只在启动时加载）；
-echo    2. 刷新页面，在“扩展”面板找到“大聪明”；
+echo    2. 刷新页面，在“扩展”面板找到“AI还没忘”；
 echo    3. 装了内嵌插件：面板显示“已连接 SillyTavern 内嵌服务”，直接打开“自动管理”即可；
-echo       用独立服务：先运行 启动大聪明.cmd，再在面板点“连接服务”完成配对。
+echo       用独立服务：先运行 启动AI还没忘.cmd，再在面板点“连接服务”完成配对。
 echo.
-echo  卸载：运行「卸载大聪明.cmd」只删除扩展与插件目录，不动你的记忆数据。
+echo  卸载：运行「卸载AI还没忘.cmd」只删除扩展与插件目录，不动你的记忆数据。
 echo.
 pause
 endlocal

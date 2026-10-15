@@ -25,7 +25,7 @@ import { resolveConfig } from '../src/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SERVER_ROOT = path.resolve(__dirname, '..');
-const PLUGIN_DIR = path.resolve(SERVER_ROOT, '..', 'st-plugin', 'dacongming');
+const PLUGIN_DIR = path.resolve(SERVER_ROOT, '..', 'st-plugin', 'not-forgotten');
 
 function makeFakeRouter() {
     const routes = [];
@@ -96,7 +96,7 @@ test('固定服务模式：注册路由、跳过配对与关闭接口、处理�
         await router.find('GET', '/health').handler(makeReq(), res);
         assert.equal(res.state.status, 200);
         assert.equal(res.state.body.ok, true);
-        assert.equal(res.state.body.service, 'dacongming-memory-service');
+        assert.equal(res.state.body.service, 'not-forgotten-memory-service');
         assert.equal(res.state.body.paired, true, '插件模式应报告已连接');
 
         // 处理器抛错 → 400 + ok:false
@@ -127,7 +127,7 @@ test('插件模式：解析式挂载按用户隔离服务，惰性建库并写�
         const resolveService = (req) => {
             const root = req?.user?.directories?.root;
             if (!root) return Promise.reject(Object.assign(new Error('缺少 req.user'), { status: 401 }));
-            const dataDir = path.join(root, 'dacongming');
+            const dataDir = path.join(root, 'not-forgotten');
             const found = built.find((b) => b.dataDir === dataDir);
             if (found) return Promise.resolve(found.service);
             return (async () => {
@@ -160,7 +160,7 @@ test('插件模式：解析式挂载按用户隔离服务，惰性建库并写�
         // 另一个用户 → 独立数据目录
         await router.find('GET', '/health').handler(makeReq({ user: { directories: { root: rootB } } }), makeRes());
         assert.equal(built.length, 2, '不同用户应各自建库');
-        assert.ok(fs.existsSync(path.join(rootA, 'dacongming', 'settings.json')));
+        assert.ok(fs.existsSync(path.join(rootA, 'not-forgotten', 'settings.json')));
         assert.notEqual(built[0].dataDir, built[1].dataDir);
 
         // 缺少 req.user → 401
@@ -224,22 +224,22 @@ test('resolveConfig：按指定数据目录派生全部路径', () => {
 test('扩展侧 URL 映射：三种模式拼出的地址与插件实际挂载一致', async () => {
     const mod = await loadBridgeModule();
 
-    // 内嵌插件：宿主挂在 /api/plugins/dacongming，路由不含 /api 前缀
-    assert.equal(mod.PLUGIN_PREFIX, '/api/plugins/dacongming');
-    assert.equal(mod.buildUrl('plugin', null, '/api/health'), '/api/plugins/dacongming/health');
-    assert.equal(mod.buildUrl('plugin', null, '/api/plan'), '/api/plugins/dacongming/plan');
+    // 内嵌插件：宿主挂在 /api/plugins/not-forgotten，路由不含 /api 前缀
+    assert.equal(mod.PLUGIN_PREFIX, '/api/plugins/not-forgotten');
+    assert.equal(mod.buildUrl('plugin', null, '/api/health'), '/api/plugins/not-forgotten/health');
+    assert.equal(mod.buildUrl('plugin', null, '/api/plan'), '/api/plugins/not-forgotten/plan');
     assert.equal(
         mod.buildUrl('plugin', null, '/api/plans/abc/feedback'),
-        '/api/plugins/dacongming/plans/abc/feedback',
+        '/api/plugins/not-forgotten/plans/abc/feedback',
     );
-    assert.equal(mod.buildUrl('plugin', null, '/api/memories?scope=x'), '/api/plugins/dacongming/memories?scope=x');
-    assert.equal(mod.buildUrl('plugin', null, '/api/events'), '/api/plugins/dacongming/events');
+    assert.equal(mod.buildUrl('plugin', null, '/api/memories?scope=x'), '/api/plugins/not-forgotten/memories?scope=x');
+    assert.equal(mod.buildUrl('plugin', null, '/api/events'), '/api/plugins/not-forgotten/events');
 
     // 同源桥接：代理插件只在 /proxy/* 下转发（D8 修复点）
-    assert.equal(mod.BRIDGE_PROXY_BASE, '/api/plugins/dacongming-memory/proxy');
+    assert.equal(mod.BRIDGE_PROXY_BASE, '/api/plugins/not-forgotten-memory/proxy');
     assert.equal(
         mod.buildUrl('bridge', null, '/api/plan'),
-        '/api/plugins/dacongming-memory/proxy/api/plan',
+        '/api/plugins/not-forgotten-memory/proxy/api/plan',
     );
 
     // 直连：base 即服务地址
@@ -266,7 +266,7 @@ test('扩展侧 URL 映射：三种模式拼出的地址与插件实际挂载一
 
 /** 载入扩展侧 bridge.js（扩展目录无 package.json，按 ESM 求值以便单测）。 */
 async function loadBridgeModule() {
-    const bridgePath = path.resolve(SERVER_ROOT, '..', 'extension', 'dacongming', 'bridge.js');
+    const bridgePath = path.resolve(SERVER_ROOT, '..', 'extension', 'not-forgotten', 'bridge.js');
     const source = fs.readFileSync(bridgePath, 'utf8');
     return import(`data:text/javascript;base64,${Buffer.from(source, 'utf8').toString('base64')}`);
 }
@@ -300,7 +300,7 @@ test('同源模式自动附带 SillyTavern CSRF 令牌；403 时刷新令牌并�
         const csrfCalls = calls.filter((c) => c.url === '/csrf-token');
         assert.equal(csrfCalls.length, 1, '同源 POST 应取一次令牌');
         const post = calls.find((c) => c.method === 'POST');
-        assert.equal(post.url, '/api/plugins/dacongming/plan');
+        assert.equal(post.url, '/api/plugins/not-forgotten/plan');
         assert.equal(post.headers['X-CSRF-Token'], 'tok-1', 'POST 必须带上 CSRF 令牌');
         assert.equal(post.headers.authorization, undefined, '插件模式不需要 Bearer');
 
@@ -360,7 +360,7 @@ test('插件入口：满足 SillyTavern plugin-loader 契约，并能在伪造 r
         }
         fs.writeFileSync(path.join(stage, 'config.json'), JSON.stringify({
             serverRoot: path.join(SERVER_ROOT, 'src'),
-            dataSubdir: 'dacongming',
+            dataSubdir: 'not-forgotten',
             storeKind: 'auto',
             logLevel: 'error',
             seedSettings: { autoManage: true, shadowMode: 'first-n', shadowTurns: 20 },
@@ -378,7 +378,7 @@ test('插件入口：满足 SillyTavern plugin-loader 契约，并能在伪造 r
             assert.equal(typeof plugin.info[field], 'string', `info.${field} 必须是字符串`);
         }
         assert.match(plugin.info.id, /^[a-z0-9_-]+$/);
-        assert.equal(plugin.info.id, 'dacongming');
+        assert.equal(plugin.info.id, 'not-forgotten');
         assert.equal(typeof plugin.init, 'function');
         assert.equal(typeof plugin.exit, 'function');
 
@@ -393,7 +393,7 @@ test('插件入口：满足 SillyTavern plugin-loader 契约，并能在伪造 r
         assert.equal(res.state.body.paired, true);
 
         // 每用户数据目录 + 首次播种设置（修复「记忆库永远为空」的默认值缺口）
-        const dataDir = path.join(userRoot, 'dacongming');
+        const dataDir = path.join(userRoot, 'not-forgotten');
         assert.ok(fs.existsSync(path.join(dataDir, 'settings.json')));
         const seeded = JSON.parse(fs.readFileSync(path.join(dataDir, 'settings.json'), 'utf8'));
         assert.equal(seeded.autoManage, true);

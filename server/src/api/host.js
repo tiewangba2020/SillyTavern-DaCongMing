@@ -1,6 +1,6 @@
 /**
  * 宿主胶水层：让同一套核心既能以「独立 HTTP 服务」运行（走 api/server.js），
- * 也能以「SillyTavern 服务端插件」运行（走 st-plugin/dacongming）。
+ * 也能以「SillyTavern 服务端插件」运行（走 st-plugin/not-forgotten）。
  *
  * 只依赖 Node 标准库与 express 风格的 router 接口（router.get/post/... 与 res.status().json()），
  * 不引入任何第三方依赖。
