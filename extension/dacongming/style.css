@@ -278,16 +278,27 @@
     border: 1px solid var(--SmartThemeBorderColor, #555);
     border-radius: 8px;
 }
-.dcm-memory-head { display: flex; gap: 6px; flex-wrap: wrap; }
+/* 标签行：align-items: flex-start 很关键——默认的 stretch 会让下面这些
+   小胶囊被拉成跟「换行后的长标题」一样高，再叠加 border-radius:999px 就变成了
+   一大坨黑色椭圆（标题越长越夸张）。 */
+.dcm-memory-head { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-start; }
 .dcm-badge {
+    /* 与父容器 align-items 无关，自己保证不被拉伸 + 不参与收缩 */
+    flex: 0 0 auto;
+    align-self: flex-start;
     font-size: 0.75em;
-    padding: 1px 7px;
+    line-height: 1.45;
+    padding: 1px 8px;
     border-radius: 999px;
-    background: #555;
-    color: #fff;
+    /* 中性色用半透明灰，深浅主题都不刺眼；语义色（下方 .dcm-locked 等）另外覆盖 */
+    background: rgba(128, 128, 128, 0.22);
+    border: 1px solid rgba(128, 128, 128, 0.38);
+    color: inherit;
+    letter-spacing: 0.01em;
 }
-.dcm-badge.dcm-locked { background: #2e7d32; }
-.dcm-badge.dcm-invalid { background: #b71c1c; }
+.dcm-badge.dcm-locked { background: #2e7d32; border-color: #2e7d32; color: #fff; }
+.dcm-badge.dcm-invalid { background: #b71c1c; border-color: #b71c1c; color: #fff; }
+
 .dcm-memory-content { font-size: 0.92em; white-space: pre-wrap; word-break: break-word; }
 .dcm-memory-meta { font-size: 0.78em; opacity: 0.65; }
 .dcm-memory-actions { display: flex; gap: 6px; flex-wrap: wrap; }

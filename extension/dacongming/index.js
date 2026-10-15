@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'dacongming';
-const EXT_VERSION = '0.3.5';
+const EXT_VERSION = '0.3.6';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {

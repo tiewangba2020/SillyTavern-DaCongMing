@@ -413,10 +413,16 @@ export function memoryCard(record, handlers) {
         active: '#2e7d32', confirmed: '#1565c0', observed: '#7b1fa2', candidate: '#9e9e9e',
         conflict: '#c62828', superseded: '#757575', expired: '#ef6c00', archived: '#616161',
     };
+    // 浅底（如 candidate 的 #9e9e9e）配白字对比度只有 2.8:1，读不清；按亮度自动选深/浅文字色
+    const readableText = (hex) => {
+        const n = parseInt(String(hex).slice(1), 16);
+        const lum = 0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255);
+        return lum > 150 ? '#1b1b1b' : '#fff';
+    };
     const card = el('div', { class: 'dcm-memory-card' });
     const head = el('div', { class: 'dcm-memory-head' }, [
         el('span', { class: 'dcm-badge', text: record.kind }),
-        el('span', { class: 'dcm-badge', style: `background:${statusColors[record.status] ?? '#666'}`, text: record.status }),
+        el('span', { class: 'dcm-badge', style: `background:${statusColors[record.status] ?? '#666'}; border-color:transparent; color:${readableText(statusColors[record.status] ?? '#666')};`, text: record.status }),
         record.userLocked ? el('span', { class: 'dcm-badge dcm-locked', text: '已固定' }) : null,
         record.userEdited ? el('span', { class: 'dcm-badge', text: '用户编辑' }) : null,
         record.invalidated ? el('span', { class: 'dcm-badge dcm-invalid', text: '已失效' }) : null,
