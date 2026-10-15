@@ -128,7 +128,6 @@ export function buildMainPanel(handlers) {
     ]));
 
     // ── 分区 1：记忆与压缩 ──
-    const inlineCenterBody = el('div', { id: 'dcm-inline-center-body' });
     const tierSelect = el('select', { id: 'dcm-tier' },
         Object.entries(TIER_LABELS).map(([value, label]) => el('option', { value }, [label])));
     tierSelect.addEventListener('change', () => handlers.onTier(tierSelect.value));
@@ -171,11 +170,6 @@ export function buildMainPanel(handlers) {
         customTierBox,
         summaryBox,
         el('div', { class: 'dcm-btn-row' }, [centerBtn]),
-        // 内嵌记忆中心：折叠面板，展开即加载（与模态共用同一套渲染逻辑）
-        el('details', { class: 'dcm-inline-center', id: 'dcm-inline-center' }, [
-            el('summary', { text: '记忆中心（内嵌）' }),
-            inlineCenterBody,
-        ]),
     ]));
 
     // ── 分区 2：隐私与授权 ──
@@ -261,7 +255,7 @@ export function buildMainPanel(handlers) {
         refs: {
             autoToggle, tierSelect, privacySelect, statusDot, statusText, statusReason,
             fixBox, summaryBox, toggles, pairRow, main,
-            inlineCenterBody, customTierBox, ctTrigger, ctRecallTopK, ctRecallFloor, ctSummary, ctRecentMin,
+            customTierBox, ctTrigger, ctRecallTopK, ctRecallFloor, ctSummary, ctRecentMin,
             jevEndpoint, jevApiKey, jevModel, jevTimeoutMs, jevMinConfidence,
         },
     };

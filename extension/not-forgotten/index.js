@@ -21,7 +21,7 @@ import {
 } from './ui.js';
 
 const EXT_NAME = 'not-forgotten';
-const EXT_VERSION = '0.4.0';
+const EXT_VERSION = '0.4.1';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -65,7 +65,6 @@ const state = {
     sseClose: null,
     ui: null,
     center: null,
-    centerInline: null,
     busy: false,
 };
 
@@ -749,10 +748,8 @@ function closeCenter() {
 }
 
 async function loadTab(name) {
-    // 模态与内嵌抽屉是同一组件的两个实例：切换标签时两份内容都刷新，保持一致
-    const centers = [state.center, state.centerInline].filter((c) => c?.refs);
-    if (!centers.length) return;
-    await Promise.all(centers.map((c) => loadCenterTab(name, c)));
+    if (!state.center?.refs) return;
+    await loadCenterTab(name, state.center);
 }
 
 async function loadCenterTab(name, center) {
@@ -1699,20 +1696,6 @@ function buildUi() {
     state.center = center;
     center.overlay.style.display = 'none';
     document.body.append(center.overlay);
-
-    // 内嵌记忆中心（主面板抽屉内的第二实例）：展开 details 时才加载，避免连接前空跑
-    if (panel.refs.inlineCenterBody) {
-        const inline = buildMemoryCenterBody({
-            onClose: () => {},
-            onTab: (name) => loadTab(name),
-        });
-        panel.refs.inlineCenterBody.append(inline.root);
-        state.centerInline = inline;
-        const details = panel.refs.inlineCenterBody.closest('details');
-        details?.addEventListener('toggle', () => {
-            if (details.open) loadTab(inline.refs.activeTab());
-        });
-    }
 
     const container = document.getElementById('extensions_settings')
         ?? document.getElementById('extensions_settings2');

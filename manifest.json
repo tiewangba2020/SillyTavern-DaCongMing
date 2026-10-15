@@ -7,7 +7,7 @@
     "js": "extension/not-forgotten/index.js",
     "css": "extension/not-forgotten/style.css",
     "author": "AI还没忘项目组",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "homePage": "https://github.com/tiewangba2020/sillytavern-not-forgotten",
     "auto_update": false
 }

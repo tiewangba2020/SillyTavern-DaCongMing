@@ -375,28 +375,6 @@
 .dcm-toast-warn { background: #ef6c00; }
 
 /* 内嵌记忆中心（主面板抽屉内的折叠副本） */
-.dcm-inline-center {
-    margin-top: 8px;
-    border: 1px solid var(--SmartThemeBorderColor, #ccc);
-    border-radius: 6px;
-    overflow: hidden;
-}
-.dcm-inline-center > summary {
-    cursor: pointer;
-    padding: 6px 10px;
-    font-weight: 600;
-    white-space: nowrap;
-    user-select: none;
-}
-.dcm-inline-center > summary:hover {
-    background: color-mix(in srgb, var(--SmartThemeBlurTintColor, #888) 15%, transparent);
-}
-.dcm-inline-center .dcm-center-body {
-    max-height: 60vh;
-    overflow-y: auto;
-    padding: 8px;
-}
-
 /* 模态内的标签主体容器（buildMemoryCenterBody 的根）：必须自我约束，否则内容撑破弹窗且无法滚动 */
 .dcm-center-inline-body {
     flex: 1;

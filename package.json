@@ -1,6 +1,6 @@
 {
   "name": "sillytavern-not-forgotten",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "AI还没忘 · SillyTavern 记忆管理与上下文压缩（浏览器扩展 + 内嵌服务端插件 + 独立服务）",
   "type": "module",
