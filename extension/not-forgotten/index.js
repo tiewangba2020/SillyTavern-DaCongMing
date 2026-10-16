@@ -15,13 +15,14 @@
 // 解析出的 URL 都是 /scripts/extensions.js，指向同一个模块实例。
 import { extension_settings, getContext } from '/scripts/extensions.js';
 import { BridgeClient, BridgeError, DEFAULT_DIRECT_BASE, BRIDGE_PROXY_BASE, PLUGIN_PREFIX } from './bridge.js';
+import { currentCharacter, resolveChatId, resolveBranchId } from './scope-id.js';
 import {
     buildMainPanel, buildMemoryCenter, buildMemoryCenterBody, renderStatus, renderRoundSummary,
     memoryCard, toast, el, emptyState, drawer, sectionTitle, kvRow, rawJson,
 } from './ui.js';
 
 const EXT_NAME = 'not-forgotten';
-const EXT_VERSION = '0.4.1';
+const EXT_VERSION = '0.4.2';
 const HEURISTIC_NOTE = 'token 为本地估算，发送前由 SillyTavern tokenizer 最终校验';
 
 const DEFAULTS = {
@@ -275,22 +276,14 @@ async function setAutoManage(value, { silent = false } = {}) {
 // 探针
 // ============================================================
 
-function currentCharacter(ctx) {
-    const idx = ctx.characterId ?? ctx.this_chid;
-    if (idx === undefined || idx === null) return null;
-    return ctx.characters?.[idx] ?? null;
-}
-
-function resolveChatId(ctx) {
-    const explicit = ctx.chatId ?? ctx.chatMetadata?.chat_id ?? ctx.chatMetadata?.file_name;
-    if (typeof explicit === 'string' && explicit) return explicit;
-    const avatar = currentCharacter(ctx)?.avatar ?? ctx.name2 ?? 'unknown';
-    const first = ctx.chat?.[0]?.send_date ?? 'nofirst';
-    return `${avatar}::${first}`;
-}
-
-function resolveBranchId(ctx) {
-    return ctx.chatMetadata?.branch_id ?? ctx.chatMetadata?.branchId ?? 'main';
+/**
+ * 写操作前的守卫：拿不到可归属的 chatId 时提示并中止。
+ * 只用于「会落库」的路径（探针 / 摄取 / 手动新增 / 快照 / 导入），只读路径不必调用。
+ */
+function guardChatId(ctx, action) {
+    const chatId = resolveChatId(ctx);
+    if (!chatId) toast(`当前没有打开的聊天，${action}已取消`, 'warn');
+    return chatId;
 }
 
 function scopeFor(chatId, branchId) {
@@ -415,6 +408,7 @@ async function reportProbe(force = false) {
     try {
         const ctx = getContext();
         if (!ctx.chat?.length) return;
+        if (!resolveChatId(ctx)) return; // 上下文未就绪：不落无法归属的孤儿探针
         lastProbeAt = Date.now();
         await bridge.probe(collectProbe(ctx));
     } catch (err) {
@@ -443,6 +437,7 @@ async function ingestNow({ full = false, deleted = null, silent = true } = {}) {
     const ctx = getContext();
     if (!ctx.chat?.length && !deleted) return null;
     const chatId = resolveChatId(ctx);
+    if (!chatId) return null; // 上下文未就绪：不落无法归属的孤儿副本
     const branchId = resolveBranchId(ctx);
     const chat = ctx.chat ?? [];
     const tail = full ? chat : chat.slice(-12);
@@ -538,6 +533,8 @@ async function onIntercept(chat, contextSize, abort, type) {
     }
 
     const ctx = getContext();
+    // 上下文未就绪（拿不到角色）：本轮不规划、不落库，原样发送
+    if (!resolveChatId(ctx)) return;
 
     // 1. 先同步最新消息（本地调用，很快；失败不影响计划，继续用原文规划）
     await ingestNow({ full: false, silent: true });
@@ -901,7 +898,8 @@ async function openAddDialog(reload, anchorEl) {
         const content = ta.value.trim();
         if (!content) { editor.remove(); return; }
         const ctx = getContext();
-        const chatId = resolveChatId(ctx);
+        const chatId = guardChatId(ctx, '新增记忆');
+        if (!chatId) return;
         const scope = scopeFor(chatId, resolveBranchId(ctx));
         try {
             await bridge.createMemory({ scope, chatId, content, kind: 'anchor' });
@@ -1147,6 +1145,7 @@ async function renderSnapshots(pane) {
 
     const createBtn = el('button', { class: 'menu_button dcm-primary', text: '立即创建快照' });
     createBtn.addEventListener('click', async () => {
+        if (!chatId) { toast('当前没有打开的聊天，创建快照已取消', 'warn'); return; }
         createBtn.disabled = true;
         try {
             await bridge.createSnapshot({ scope, chatId, branchId, label: '手动快照' });
@@ -1235,7 +1234,8 @@ async function renderHealth(pane) {
 async function renderMigrate(pane) {
     pane.innerHTML = '';
     const ctx = getContext();
-    const scope = scopeFor(resolveChatId(ctx), resolveBranchId(ctx));
+    const chatId = resolveChatId(ctx);
+    const scope = scopeFor(chatId, resolveBranchId(ctx));
     pane.append(el('div', { class: 'dcm-entry-sub', text: '支持 Horae / 柏宝书 / shujuku / Anima RAG / 手写总结 / 通用 JSON。流程：只读扫描 → 预览 → 试运行 → 导入 → 可回滚。' }));
     const fileInput = el('input', { type: 'file', accept: '.json,.txt', class: 'dcm-file' });
     const sourceSel = el('select', {}, [
@@ -1251,6 +1251,7 @@ async function renderMigrate(pane) {
     const scanBtn = el('button', { class: 'menu_button', text: '扫描并预览' });
     let scanned = null;
     scanBtn.addEventListener('click', async () => {
+        if (!chatId) return toast('当前没有打开的聊天，无法导入', 'warn');
         const file = fileInput.files?.[0];
         if (!file) return toast('请选择文件', 'warn');
         const text = await file.text();
